@@ -43,7 +43,11 @@ void dot_circle(Dot *d, int cx, int cy, int r, Uint32 rgb);
 void dot_adot(Dot *d, int x, int y, Uint32 rgb);             // 14 px state dot, top-left at x,y
 void dot_icon(Dot *d, int icon, int cx, int cy, int size, Uint32 rgb);
 // Rounds an image's corners by painting the outside of a radius-r corner in bg (the colour behind the image).
-void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg);
+void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg);   // bg DOT_BG_GROUND: the ground there
+#define DOT_BG_GROUND 0xff000000
+// Poster/cover on the ground, radius 16: focus = the round-button ring; progress > 0 = dot progress on a strip
+// along the bottom; seen = dimmed; fresh = accent dot top-right. img NULL = a placeholder.
+void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus, float progress, int seen, int fresh);
 
 // Text. y is the top of the CSS line box of that style. Returns the drawn width. maxw > 0 cuts with an ellipsis.
 int dot_text(Dot *d, int style, const char *s, int x, int y, Uint32 rgb, int align, int maxw);

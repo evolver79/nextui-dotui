@@ -44,6 +44,9 @@ enum DotType {
 #define DOT_R_CARD 30
 #define DOT_R_ROW 26
 #define DOT_R_CHIP 24
+#define DOT_R_POSTER 16
+#define DOT_POSTER_W 176   // grid: 5 x 2 posters at a 192 x 280 pitch fill content 96-640
+#define DOT_POSTER_H 264
 #define DOT_ROW_H 78
 #define DOT_WELL 46
 #define DOT_ROUND 76

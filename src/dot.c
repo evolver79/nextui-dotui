@@ -396,6 +396,16 @@ void dot_set_ground(Dot *d, int v) { d->ground = v; }
 // --- base -------------------------------------------------------------------------------------------------------
 static float lerp(float a, float b, float t) { return a + (b - a) * t; }
 
+// The ground's colour at a point (no dither): for things that must blend into it, like rounded image corners.
+static Uint32 ground_rgb(Dot *d, float x, float y) {
+  const Uint32 stop[3] = { DOT_GROUND_HI, DOT_GROUND_MID, DOT_GROUND_LO };
+  float cx = d->ground == DOT_GROUND_TOPCENTRE ? DOT_W / 2.f : 0, dx = (x - cx) / (DOT_W * 1.2f), dy = y / (DOT_H * .9f);
+  float t = sqrtf(dx * dx + dy * dy), u = t < .7f ? t / .7f : clampf((t - .7f) / .3f, 0, 1);
+  Uint32 a = t < .7f ? stop[0] : stop[1], b = t < .7f ? stop[1] : stop[2], o = 0;
+  for (int sh = 0; sh < 24; sh += 8) o |= (Uint32)(lerp(a >> sh & 255, b >> sh & 255, u) + .5f) << sh;
+  return o;
+}
+
 void dot_ground(Dot *d) {
   char key[32]; snprintf(key, sizeof key, "ground:%d", d->ground);
   Ent *e = cache_get(d, key);
@@ -456,14 +466,40 @@ void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg) {
     }
     e = cache_put(d, key, s, 0, 0);
   }
-  SDL_SetTextureColorMod(e->t, bg >> 16 & 255, bg >> 8 & 255, bg & 255);
   SDL_SetTextureAlphaMod(e->t, d->alpha);
   const SDL_RendererFlip fl[4] = { SDL_FLIP_NONE, SDL_FLIP_HORIZONTAL, SDL_FLIP_VERTICAL,
                                    (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL) };
   for (int i = 0; i < 4; i++) {
     SDL_Rect dst = { i & 1 ? x + w - r : x, i & 2 ? y + h - r : y, r, r };
+    Uint32 c = bg == DOT_BG_GROUND ? ground_rgb(d, dst.x + r / 2.f, dst.y + r / 2.f) : bg;
+    SDL_SetTextureColorMod(e->t, c >> 16 & 255, c >> 8 & 255, c & 255);
     SDL_RenderCopyEx(d->r, e->t, NULL, &dst, 0, NULL, fl[i]);
   }
+}
+
+void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus, float progress, int seen, int fresh) {
+  int r = DOT_R_POSTER;
+  if (focus) { dot_rect(d, x - 8, y - 8, w + 16, h + 16, r + 8, DOT_PAPER, 255); dot_rect(d, x - 4, y - 4, w + 8, h + 8, r + 4, DOT_CARD, 255); }
+  SDL_Rect box = { x, y, w, h };
+  if (img) {
+    SDL_SetTextureColorMod(img, 255, 255, 255); SDL_SetTextureAlphaMod(img, d->alpha);
+    SDL_RenderCopy(d->r, img, NULL, &box);
+  } else {
+    SDL_SetRenderDrawBlendMode(d->r, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(d->r, DOT_RAISED >> 16, DOT_RAISED >> 8 & 255, DOT_RAISED & 255, 255);
+    SDL_RenderFillRect(d->r, &box);
+    dot_icon(d, DOT_I_FILM, x + w / 2, y + h / 2, w / 3, DOT_DIM);
+  }
+  SDL_SetRenderDrawBlendMode(d->r, SDL_BLENDMODE_BLEND);
+  if (seen) { SDL_SetRenderDrawColor(d->r, 0, 0, 0, 120); SDL_RenderFillRect(d->r, &box); }
+  if (progress > 0) {   // a card strip along the bottom with dot progress
+    SDL_Rect strip = { x, y + h - 30, w, 30 };
+    SDL_SetRenderDrawColor(d->r, DOT_CARD >> 16, DOT_CARD >> 8 & 255, DOT_CARD & 255, 225);
+    SDL_RenderFillRect(d->r, &strip);
+    dot_progress(d, x + 12, y + h - 27, w - 24, progress, 0);
+  }
+  if (fresh) { dot_circle(d, x + w - 19, y + 19, 11, DOT_CARD); dot_adot(d, x + w - 26, y + 12, d->accent); }
+  dot_corners(d, x, y, w, h, r, focus ? DOT_CARD : DOT_BG_GROUND);
 }
 
 // --- components -------------------------------------------------------------------------------------------------

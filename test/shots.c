@@ -132,6 +132,36 @@ static void options(int night) {
   dot_set_night(D, 0);
 }
 
+// Stand-in poster: a two-colour gradient with the title in dots, 176 x 264.
+static SDL_Texture *poster(const char *title, Uint32 top, Uint32 bottom) {
+  SDL_Texture *t = SDL_CreateTexture(R, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, DOT_POSTER_W, DOT_POSTER_H);
+  SDL_SetRenderTarget(R, t);
+  for (int i = 0; i < DOT_POSTER_H; i++) fill(0, i, DOT_POSTER_W, 1, mix(top, bottom, (float)i / DOT_POSTER_H));
+  dot_circle(D, 120, 90, 46, mix(bottom, 0xffffff, .55f));
+  dot_text(D, DOT_DISPLAY_M, title, 14, 190, 0xffffff, DOT_LEFT, 150);
+  SDL_SetRenderTarget(R, NULL);
+  return t;
+}
+
+static void jellyfin_grid(void) {
+  dot_set_accent(D, DOT_ACCENT_KINO);
+  dot_ground(D);
+  static const char *t[10] = { "DUNE", "HARBOUR", "NORTH", "ORBIT", "TIDE", "ECHO", "FJORD", "AURORA", "RALLY", "CABIN" };
+  static const Uint32 c[10][2] = { { 0xd9a35b, 0x5a2f14 }, { 0x2f5d7c, 0x0d1a22 }, { 0x8fb8c9, 0x22323d }, { 0x3a2d6b, 0x0c0a1f },
+    { 0x1f8a8a, 0x08302f }, { 0x9b3b3b, 0x2a0d10 }, { 0x4f7d4a, 0x14240f }, { 0x3bb38f, 0x1b1340 }, { 0xe0662b, 0x301208 },
+    { 0xa58d6a, 0x2b2218 } };
+  for (int i = 0; i < 10; i++) {
+    SDL_Texture *p = poster(t[i], c[i][0], c[i][1]);
+    int x = 40 + (i % 5) * 192, y = 96 + (i / 5) * 280;
+    dot_poster(D, p, x, y, DOT_POSTER_W, DOT_POSTER_H, i == 1, i == 1 ? .37f : i == 6 ? .8f : 0, i == 4 || i == 9, i == 2);
+    SDL_DestroyTexture(p);
+  }
+  dot_text(D, DOT_TITLE, "The Long Harbour", 40, 22, 0x161616, DOT_LEFT, 600);
+  dot_text(D, DOT_LABEL_T, "2021 · 1h 52m · 2 / 48", 984, 30, 0x161616, DOT_RIGHT, 0);
+  DotHint h[] = { { "A", "Resume" }, { "L1 R1", "Page" }, { "Y", "Sort" }, { "B", "Back" } };
+  dot_dock(D, h, 4);
+}
+
 static void components(void) {
   dot_set_accent(D, DOT_ACCENT_KINO);
   dot_ground(D);
@@ -172,7 +202,7 @@ int main(int argc, char **argv) {
   TTF_Font *mono = TTF_OpenFont("fonts/GeistMono-Medium.ttf", 22);
   printf("Geist Mono has ◀ %d, ▶ %d, · %d, … %d\n", TTF_GlyphIsProvided(mono, 0x25c0), TTF_GlyphIsProvided(mono, 0x25b6),
          TTF_GlyphIsProvided(mono, 0xb7), TTF_GlyphIsProvided(mono, 0x2026));
-  struct { const char *name; void (*f)(void); } shots[] = { { "components", components } };
+  struct { const char *name; void (*f)(void); } shots[] = { { "components", components }, { "jellyfin-grid", jellyfin_grid } };
   Uint32 t0 = SDL_GetTicks();
   kino_browse(DOT_GROUND_TOPLEFT); save("kino-browse");
   kino_browse(DOT_GROUND_TOPCENTRE); save("kino-browse-ground-topcentre");
