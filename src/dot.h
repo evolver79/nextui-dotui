@@ -58,7 +58,7 @@ void dot_title(Dot *d, const char *s);                           // Display M sc
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot);
 int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // returns width
-void dot_round(Dot *d, int cx, int cy, int icon, int big, int state);
+void dot_round(Dot *d, int cx, int cy, int icon, int big, int state);   // state: DOT_FOCUS ring, DOT_ON lit, DOT_OFF
 int  dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align);   // align: x is left/right edge
 void dot_toast(Dot *d, const char *s, float alpha);              // bottom centre
 int  dot_chip(Dot *d, int x, int y, const char *s, int state);   // returns width

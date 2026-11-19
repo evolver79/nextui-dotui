@@ -511,10 +511,10 @@ int dot_key(Dot *d, int x, int y, const char *key, int primary, int off) {
 }
 
 void dot_round(Dot *d, int cx, int cy, int icon, int big, int state) {
-  int r = (big ? DOT_ROUND_BIG : DOT_ROUND) / 2;
+  int r = (big ? DOT_ROUND_BIG : DOT_ROUND) / 2, lit = big || (state & DOT_ON);   // DOT_ON: lit at its own size
   if (state & DOT_FOCUS) { dot_circle(d, cx, cy, r + 8, DOT_PAPER); dot_circle(d, cx, cy, r + 4, DOT_CARD); }
-  dot_circle(d, cx, cy, r, big ? DOT_PAPER : DOT_RAISED);
-  dot_icon(d, icon, cx, cy, big ? 40 : 30, big ? DOT_INK : (state & DOT_OFF) ? DOT_DIM : DOT_TEXT);
+  dot_circle(d, cx, cy, r, lit ? DOT_PAPER : DOT_RAISED);
+  dot_icon(d, icon, cx, cy, big ? 40 : 30, lit ? DOT_INK : (state & DOT_OFF) ? DOT_DIM : DOT_TEXT);
 }
 
 int dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align) {
