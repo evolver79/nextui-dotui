@@ -162,6 +162,64 @@ static void jellyfin_grid(void) {
   dot_dock(D, h, 4);
 }
 
+// Variant: smaller posters with the title under each (5 x 2, posters 152 x 228, title line 28).
+static void jellyfin_grid_titles(void) {
+  dot_set_accent(D, DOT_ACCENT_KINO);
+  dot_ground(D);
+  static const char *name[10] = { "Dune: Part Two", "The Long Harbour", "Northern", "Orbit", "Tide Pool", "Echo Valley",
+                                  "Fjord", "Aurora Borealis Live", "Rally Highlights", "Summer Cabin" };
+  static const char *t[10] = { "DUNE", "HARBOUR", "NORTH", "ORBIT", "TIDE", "ECHO", "FJORD", "AURORA", "RALLY", "CABIN" };
+  static const Uint32 c[10][2] = { { 0xd9a35b, 0x5a2f14 }, { 0x2f5d7c, 0x0d1a22 }, { 0x8fb8c9, 0x22323d }, { 0x3a2d6b, 0x0c0a1f },
+    { 0x1f8a8a, 0x08302f }, { 0x9b3b3b, 0x2a0d10 }, { 0x4f7d4a, 0x14240f }, { 0x3bb38f, 0x1b1340 }, { 0xe0662b, 0x301208 },
+    { 0xa58d6a, 0x2b2218 } };
+  const int pw = 140, ph = 210, gx = (944 - 5 * pw) / 4, rowh = ph + 8 + 30 + 16, tw = pw + gx - 12;
+  for (int i = 0; i < 10; i++) {
+    SDL_Texture *p = poster(t[i], c[i][0], c[i][1]);
+    int x = 40 + (i % 5) * (pw + gx), y = 104 + (i / 5) * rowh, f = i == 1;
+    dot_poster(D, p, x, y, pw, ph, f, f ? .37f : i == 6 ? .8f : 0, i == 4 || i == 9, i == 2);
+    SDL_DestroyTexture(p);
+    // the title: on paper when focused (like a row), else dark on the ground
+    int tx = x + pw / 2, w = dot_text_w(D, DOT_UI, name[i]); w = (w > tw ? tw : w) + 24;
+    if (f) dot_rect(D, tx - w / 2, y + ph + 12, w, 34, 17, DOT_PAPER, 255);
+    dot_text(D, DOT_UI, name[i], tx, y + ph + 14, f ? DOT_INK : 0x161616, DOT_CENTER, tw);
+  }
+  dot_text(D, DOT_TITLE, "The Long Harbour", 40, 22, 0x161616, DOT_LEFT, 600);
+  dot_text(D, DOT_LABEL_T, "2021 · 1h 52m · 2 / 48", 984, 30, 0x161616, DOT_RIGHT, 0);
+  DotHint h[] = { { "A", "Resume" }, { "L1 R1", "Page" }, { "Y", "Sort" }, { "B", "Back" } };
+  dot_dock(D, h, 4);
+}
+
+// Variant: full-size posters with the title on a card strip along the bottom of each cover.
+static void jellyfin_grid_on_cover(void) {
+  dot_set_accent(D, DOT_ACCENT_KINO);
+  dot_ground(D);
+  static const char *name[10] = { "Dune: Part Two", "The Long Harbour", "Northern", "Orbit", "Tide Pool", "Echo Valley",
+                                  "Fjord", "Aurora Borealis Live", "Rally Highlights", "Summer Cabin" };
+  static const char *t[10] = { "DUNE", "HARBOUR", "NORTH", "ORBIT", "TIDE", "ECHO", "FJORD", "AURORA", "RALLY", "CABIN" };
+  static const Uint32 c[10][2] = { { 0xd9a35b, 0x5a2f14 }, { 0x2f5d7c, 0x0d1a22 }, { 0x8fb8c9, 0x22323d }, { 0x3a2d6b, 0x0c0a1f },
+    { 0x1f8a8a, 0x08302f }, { 0x9b3b3b, 0x2a0d10 }, { 0x4f7d4a, 0x14240f }, { 0x3bb38f, 0x1b1340 }, { 0xe0662b, 0x301208 },
+    { 0xa58d6a, 0x2b2218 } };
+  const int pw = DOT_POSTER_W, ph = DOT_POSTER_H;
+  for (int i = 0; i < 10; i++) {
+    SDL_Texture *p = poster(t[i], c[i][0], c[i][1]);
+    int x = 40 + (i % 5) * 192, y = 96 + (i / 5) * 280, f = i == 1;
+    float prog = f ? .37f : i == 6 ? .8f : 0;
+    dot_poster(D, p, x, y, pw, ph, f, 0, i == 4 || i == 9, i == 2);
+    SDL_DestroyTexture(p);
+    int sh = prog > 0 ? 66 : 46;   // strip: title, plus dot progress above it when started
+    SDL_SetRenderDrawBlendMode(R, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(R, f ? 0xed : 0x0f, f ? 0xed : 0x0f, f ? 0xeb : 0x10, f ? 255 : 225);
+    SDL_Rect strip = { x, y + ph - sh, pw, sh }; SDL_RenderFillRect(R, &strip);
+    if (prog > 0) dot_progress(D, x + 12, y + ph - sh + 6, pw - 24, prog, 0);
+    dot_text(D, DOT_UI, name[i], x + pw / 2, y + ph - 40, f ? DOT_INK : (i == 4 || i == 9) ? DOT_LABEL : DOT_TEXT, DOT_CENTER, pw - 20);
+    dot_corners(D, x, y, pw, ph, DOT_R_POSTER, f ? DOT_CARD : DOT_BG_GROUND);
+  }
+  dot_text(D, DOT_TITLE, "The Long Harbour", 40, 22, 0x161616, DOT_LEFT, 600);
+  dot_text(D, DOT_LABEL_T, "2021 · 1h 52m · 2 / 48", 984, 30, 0x161616, DOT_RIGHT, 0);
+  DotHint h[] = { { "A", "Resume" }, { "L1 R1", "Page" }, { "Y", "Sort" }, { "B", "Back" } };
+  dot_dock(D, h, 4);
+}
+
 static void components(void) {
   dot_set_accent(D, DOT_ACCENT_KINO);
   dot_ground(D);
@@ -202,7 +260,7 @@ int main(int argc, char **argv) {
   TTF_Font *mono = TTF_OpenFont("fonts/GeistMono-Medium.ttf", 22);
   printf("Geist Mono has ◀ %d, ▶ %d, · %d, … %d\n", TTF_GlyphIsProvided(mono, 0x25c0), TTF_GlyphIsProvided(mono, 0x25b6),
          TTF_GlyphIsProvided(mono, 0xb7), TTF_GlyphIsProvided(mono, 0x2026));
-  struct { const char *name; void (*f)(void); } shots[] = { { "components", components }, { "jellyfin-grid", jellyfin_grid } };
+  struct { const char *name; void (*f)(void); } shots[] = { { "components", components }, { "jellyfin-grid", jellyfin_grid }, { "jellyfin-grid-titles", jellyfin_grid_titles }, { "jellyfin-grid-on-cover", jellyfin_grid_on_cover } };
   Uint32 t0 = SDL_GetTicks();
   kino_browse(DOT_GROUND_TOPLEFT); save("kino-browse");
   kino_browse(DOT_GROUND_TOPCENTRE); save("kino-browse-ground-topcentre");
