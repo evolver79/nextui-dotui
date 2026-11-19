@@ -582,6 +582,10 @@ void dot_progress(Dot *d, int x, int y, int w, float frac, int knob) {
     float c = i * DOT_DOT_PITCH + DOT_DOT_PITCH / 2.f;
     dot_circle(d, x + (int)c, y + 12, DOT_DOT_R, c <= lit ? DOT_TEXT : DOT_TRACK);
   }
+  if (knob == 2) {   // focused: the same paper ring as a focused round button
+    dot_circle(d, x + (int)lit, y + 12, DOT_KNOB / 2 + 8, DOT_PAPER);
+    dot_circle(d, x + (int)lit, y + 12, DOT_KNOB / 2 + 4, DOT_CARD);
+  }
   if (knob) dot_circle(d, x + (int)lit, y + 12, DOT_KNOB / 2, DOT_TEXT);
 }
 

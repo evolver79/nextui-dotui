@@ -66,7 +66,7 @@ int  dot_chip(Dot *d, int x, int y, const char *s, int state);   // returns widt
 int  dot_chips(Dot *d, int x, int y, int w, const char **s, int n, int on, int focus);   // wraps; returns height
 void dot_toggle(Dot *d, int x, int y, int on, int focused);
 void dot_slider(Dot *d, int x, int y, float frac, int focused);  // 170 x 12
-void dot_progress(Dot *d, int x, int y, int w, float frac, int knob);   // h 24
+void dot_progress(Dot *d, int x, int y, int w, float frac, int knob);   // h 24; knob 1 shown, 2 focused
 // Option row inside a padded card: x,w are the card's content box; the focus highlight reaches 14 px past it.
 void dot_opt(Dot *d, int x, int y, int w, const char *label, const char *value, int state);
 void dot_opt_toggle(Dot *d, int x, int y, int w, const char *label, int on, int state);
