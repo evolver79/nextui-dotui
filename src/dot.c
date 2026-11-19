@@ -538,7 +538,7 @@ static int key_w(Dot *d, const char *key) {
 
 int dot_key(Dot *d, int x, int y, const char *key, int primary, int off) {
   int w = key_w(d, key), cy = y + DOT_KEY / 2;
-  Uint32 bg = primary ? DOT_PAPER : off ? DOT_RAISED : DOT_CARD, fg = primary ? DOT_INK : off ? DOT_DIM : DOT_TEXT;
+  Uint32 bg = primary ? DOT_PAPER : off ? DOT_RAISED : DOT_CARD, fg = primary ? DOT_INK : off == 1 ? DOT_DIM : DOT_TEXT;
   dot_rect(d, x, y, w, DOT_KEY, DOT_KEY / 2, bg, 255);
   if (!strcmp(key, "<>")) {
     dot_icon(d, DOT_I_LEFT, x + 20 + 9, cy, 18, fg);

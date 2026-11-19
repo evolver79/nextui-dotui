@@ -62,7 +62,7 @@ void dot_title(Dot *d, const char *s);                           // Display M sc
 // List row (h 78). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot);
-int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // returns width
+int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // off 1 disabled, 2 on a card; returns width
 void dot_round(Dot *d, int cx, int cy, int icon, int big, int state);   // state: DOT_FOCUS ring, DOT_ON lit, DOT_OFF
 int  dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align);   // align: x is left/right edge
 void dot_toast(Dot *d, const char *s, float alpha);              // bottom centre
