@@ -19,9 +19,9 @@ enum { DOT_UI = DOT_NTYPES,   // Geist Medium 24: dock, pills, option rows
        DOT_NSTYLES };
 
 enum DotAlign { DOT_LEFT, DOT_CENTER, DOT_RIGHT };
-enum DotState { DOT_NORMAL = 0, DOT_FOCUS = 1, DOT_OFF = 2, DOT_ON = 4 };   // DOT_ON combines with FOCUS on chips
+enum DotState { DOT_NORMAL = 0, DOT_FOCUS = 1, DOT_OFF = 2, DOT_ON = 4, DOT_STAR = 8 };   // DOT_STAR: a row's favourite star   // DOT_ON combines with FOCUS on chips
 enum DotIcon { DOT_I_NONE, DOT_I_PLAY, DOT_I_PAUSE, DOT_I_BACK, DOT_I_FWD, DOT_I_PREV, DOT_I_NEXT, DOT_I_FOLDER,
-               DOT_I_FILM, DOT_I_NOTE, DOT_I_TV, DOT_I_SD, DOT_I_LEFT, DOT_I_RIGHT, DOT_NICONS };
+               DOT_I_FILM, DOT_I_NOTE, DOT_I_TV, DOT_I_SD, DOT_I_LEFT, DOT_I_RIGHT, DOT_I_STAR, DOT_NICONS };
 enum DotGround { DOT_GROUND_TOPLEFT, DOT_GROUND_TOPCENTRE };   // OPEN.md question 1: where the light point sits
 
 typedef struct { const char *key; const char *text; } DotHint;   // key "A", "B", "X", "Y", "L1 R1", "<>" = ◀ ▶

@@ -191,10 +191,11 @@ static const P2 IC_NOTE[] = { CIRC(7.5f, 17.75f, 3.5f), SHAPE, RECT(9, 4, 2, 14)
 static const P2 IC_TV[] = { RECT(3, 6, 18, 12), RING, RECT(5, 8, 14, 8), SHAPE, RECT(8, 20, 8, 1.5f), END };
 static const P2 IC_SD[] = { {7, 3}, {15, 3}, {19, 7}, {19, 21}, {7, 21}, RING, RECT(9, 5, 1.5f, 3), RING,
                             RECT(12, 5, 1.5f, 3), END };
+static const P2 IC_STAR[] = { {12.00f, 2.80f}, {14.41f, 9.48f}, {21.51f, 9.71f}, {15.90f, 14.07f}, {17.88f, 20.89f}, {12.00f, 16.90f}, {6.12f, 20.89f}, {8.10f, 14.07f}, {2.49f, 9.71f}, {9.59f, 9.48f}, END };
 static const P2 IC_LEFT[] = { {17, 4}, {17, 20}, {5, 12}, END };
 static const P2 IC_RIGHT[] = { {7, 4}, {7, 20}, {19, 12}, END };
 static const P2 *ICONS[DOT_NICONS] = { NULL, IC_PLAY, IC_PAUSE, IC_BACK, IC_FWD, IC_PREV, IC_NEXT, IC_FOLDER,
-                                       IC_FILM, IC_NOTE, IC_TV, IC_SD, IC_LEFT, IC_RIGHT };
+                                       IC_FILM, IC_NOTE, IC_TV, IC_SD, IC_LEFT, IC_RIGHT, IC_STAR };
 
 static int inside_icon(const P2 *p, float x, float y) {
   while (p->x != -9) {
@@ -525,6 +526,7 @@ void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char
   } else tx = x + 24;
   if (meta && *meta) right -= text_c(d, DOT_VALUE, meta, right, cy, sel ? 0x333333 : DOT_LABEL, DOT_RIGHT, 0) + 18;
   if (adot) { dot_adot(d, right - 14, cy - 7, d->accent); right -= 14 + 18; }
+  if (state & DOT_STAR) { dot_icon(d, DOT_I_STAR, right - 11, cy, 22, sel ? DOT_INK : DOT_TEXT); right -= 22 + 16; }
   Uint32 nc = sel ? DOT_INK : off ? DOT_DIM : DOT_TEXT;
   if (sub) {
     text_c(d, DOT_BODY, name, tx, y + 9 + 15, nc, DOT_LEFT, right - tx);
