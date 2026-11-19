@@ -23,6 +23,7 @@ static const struct { int font, px; float lh, track; int upper; } ST[DOT_NSTYLES
   [DOT_SMALL] = { F_REG, 22, 1.2f, 0, 0 },        [DOT_KEY_T] = { F_MONO, 22, 1, 0, 0 },
   [DOT_KEY_WIDE] = { F_MONO, 22, 1, .06f, 0 },    [DOT_PILL_MONO] = { F_MONO, 22, 1, .1f, 1 },
   [DOT_PANEL_T] = { F_MONO, 26, 1, .14f, 1 },
+  [DOT_VALUE_L] = { F_MONO, 30, 1, 0, 0 },
 };
 
 struct Dot {

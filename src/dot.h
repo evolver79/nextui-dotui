@@ -15,6 +15,7 @@ enum { DOT_UI = DOT_NTYPES,   // Geist Medium 24: dock, pills, option rows
        DOT_KEY_WIDE,          // Geist Mono Medium 22, tracking .06em: wide key caps
        DOT_PILL_MONO,         // Geist Mono Medium 22, tracking .1em, uppercase: fact pills
        DOT_PANEL_T,           // Geist Mono Medium 26, tracking .14em, uppercase: card headings
+       DOT_VALUE_L,           // Geist Mono Medium 30: columns of numbers and notes (Musicdisk's pattern)
        DOT_NSTYLES };
 
 enum DotAlign { DOT_LEFT, DOT_CENTER, DOT_RIGHT };
