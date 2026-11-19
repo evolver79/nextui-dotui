@@ -22,6 +22,7 @@ static const struct { int font, px; float lh, track; int upper; } ST[DOT_NSTYLES
   [DOT_UI] = { F_MED, 24, 1.2f, 0, 0 },           [DOT_CHIP_T] = { F_MED, 23, 1.2f, 0, 0 },
   [DOT_SMALL] = { F_REG, 22, 1.2f, 0, 0 },        [DOT_KEY_T] = { F_MONO, 22, 1, 0, 0 },
   [DOT_KEY_WIDE] = { F_MONO, 22, 1, .06f, 0 },    [DOT_PILL_MONO] = { F_MONO, 22, 1, .1f, 1 },
+  [DOT_PANEL_T] = { F_MONO, 26, 1, .14f, 1 },
 };
 
 struct Dot {
@@ -607,9 +608,10 @@ void dot_opt_slider(Dot *d, int x, int y, int w, const char *label, float frac, 
 int dot_panel(Dot *d, int x, int y, int w, int h, const char *label) {
   dot_card(d, x, y, w, h);
   if (!label) return y + DOT_PAD;
-  dot_text(d, DOT_LABEL_T, label, x + 30, y + DOT_PAD, DOT_LABEL, DOT_LEFT, w - 60);
-  return y + DOT_PAD + 22 + 8;
+  dot_text(d, DOT_PANEL_T, label, x + 30, y + DOT_PAD, DOT_LABEL, DOT_LEFT, w - 60);
+  return y + DOT_PAD + 26 + 20;
 }
+int dot_panel_h(int content_h) { return DOT_PAD + 26 + 20 + content_h + DOT_PAD; }
 
 void dot_dock(Dot *d, const DotHint *h, int n) {
   if (n > 4) n = 4;

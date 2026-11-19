@@ -14,6 +14,7 @@ enum { DOT_UI = DOT_NTYPES,   // Geist Medium 24: dock, pills, option rows
        DOT_KEY_T,             // Geist Mono Medium 22: key caps
        DOT_KEY_WIDE,          // Geist Mono Medium 22, tracking .06em: wide key caps
        DOT_PILL_MONO,         // Geist Mono Medium 22, tracking .1em, uppercase: fact pills
+       DOT_PANEL_T,           // Geist Mono Medium 26, tracking .14em, uppercase: card headings
        DOT_NSTYLES };
 
 enum DotAlign { DOT_LEFT, DOT_CENTER, DOT_RIGHT };
@@ -70,6 +71,8 @@ void dot_progress(Dot *d, int x, int y, int w, float frac, int knob);   // h 24
 void dot_opt(Dot *d, int x, int y, int w, const char *label, const char *value, int state);
 void dot_opt_toggle(Dot *d, int x, int y, int w, const char *label, int on, int state);
 void dot_opt_slider(Dot *d, int x, int y, int w, const char *label, float frac, int state);
-// Padded card with a label on top; returns the y where its content starts (rows follow at 48 + 8 pitch).
+// Padded card with a heading on top; returns the y where its content starts (option rows follow at 56 pitch).
 int  dot_panel(Dot *d, int x, int y, int w, int h, const char *label);
+int  dot_panel_h(int content_h);   // card height for that much content under a heading
+#define DOT_OPT_PITCH 56
 void dot_dock(Dot *d, const DotHint *h, int n);                  // at most four hints
