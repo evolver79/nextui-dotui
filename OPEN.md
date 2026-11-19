@@ -8,5 +8,5 @@ Decide after testing. The header and button questions get tested in the `--shots
    (both pass 4.5:1). Compare kino-browse.png with kino-browse-ground-topcentre.png, then look on the Brick panel.
 2. **Button placeholders.** Kino X = play from start, Tuner X = favourite, Tuner Y = TV guide, Musicdisk Y = shuffle.
    Test: try them in the real apps on the Brick before locking them in the README.
-3. **GitHub visibility** of nextui-kino-pak, brick-tool and nextui-dotui. Tuner and Musicdisk include Dot as a submodule,
-   so their release workflows need nextui-dotui on GitHub, public (or a deploy key).
+3. ~~GitHub visibility~~ Settled 2026-11-19: nextui-dotui and Kino are public on GitHub (evolver79); brick-tool stays
+   private. Musicdisk and Tuner take Dot as a submodule from github.com/evolver79/nextui-dotui.
