@@ -21,6 +21,22 @@
 #define DOT_ACCENT_KINO      0xff6a2b   // follows the video's colour when playing
 #define DOT_ACCENT_MUSICDISK 0xff3b30
 #define DOT_ACCENT_TUNER     0x34c759
+// Status, shared by every app: dots, short text, thin outlines and chart marks, never fills; always with a word or icon.
+// Each has a darker shade for the paper (selected) surface. Contrast: 6.9-10.5 on card, 4.6-5.2 on paper.
+#define DOT_GOOD             0x4fd18b   // won, done, saved, connected
+#define DOT_GOOD_ON_PAPER    0x177a43
+#define DOT_WARN             0xf2b544   // stale, close to a limit, needs a look
+#define DOT_WARN_ON_PAPER    0x8a5800
+#define DOT_CRITICAL         0xff6b61   // lost, failed, no signal
+#define DOT_CRITICAL_ON_PAPER 0xc0261c
+#define DOT_INFO             0x6fa8ff   // a note, a sample, something new
+#define DOT_INFO_ON_PAPER    0x2f63c8
+// Series: categories, not states (chart lines, home/draw/away). In this order. All 8+ : 1 on card.
+#define DOT_SERIES_1         0x6fa8ff   // blue
+#define DOT_SERIES_2         0xe88cff   // violet
+#define DOT_SERIES_3         0x4fd1c5   // teal
+#define DOT_SERIES_4         0xe6c27a   // sand
+#define DOT_SERIES_5         0xc9c9c4   // grey
 
 // --- type (px) --------------------------------------------------------------------------------------------------
 enum DotType {
