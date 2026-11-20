@@ -3,6 +3,14 @@
 The shared look of the NextUI paks Kino, Musicdisk and Tuner (TrimUI Brick, 1024x768): black cards on grey,
 white for where you are, one accent dot for what is happening, dot-matrix numbers and titles.
 
+<img src="docs/screens/kino-browse.png" width="49%" alt="Kino: browsing a series, the selected episode's picture and facts on the left, the episodes as rows">
+<img src="docs/screens/kino-playing.png" width="49%" alt="Kino: playing, paused, the time in dot-matrix numbers and a dotted progress bar">
+<img src="docs/screens/musicdisk-now.png" width="49%" alt="Musicdisk: now playing, a column of dots per channel and the round buttons">
+<img src="docs/screens/tuner-guide.png" width="49%" alt="Tuner: all channels with what's on now and the next programme">
+<img src="test/shots/components.png" width="49%" alt="The component sheet: keys, chips, toggles, sliders, rows, pills, dot-matrix times, a toast and the dock">
+
+Kino, Musicdisk and Tuner, and the component sheet `test/shots.sh` renders.
+
 Added to each pak as a git submodule (`ui/dot`). C + SDL2 + SDL2_ttf.
 
 - `src/dot_tokens.h`: colours, type scale, sizes and layout bands (the same numbers as the style guide page).
