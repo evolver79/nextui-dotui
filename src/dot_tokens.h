@@ -3,10 +3,15 @@
 #pragma once
 
 // --- colour -----------------------------------------------------------------------------------------------------
-#define DOT_GROUND_HI   0xa3a3a1   // grey ground, radial from top-left
-#define DOT_GROUND_MID  0x6d6d6b
-#define DOT_GROUND_LO   0x5c5c5a
-#define DOT_CARD        0x0f0f10   // black cards
+// The ground: an evening colour per app (DotTheme below), radial from the light point; light text sits on it at 6:1 or
+// more. These are the neutral default, for an app that sets no theme.
+#define DOT_GROUND_HI   0x5b5b5b
+#define DOT_GROUND_MID  0x424242
+#define DOT_GROUND_LO   0x333333
+#define DOT_CARD        0x0f0f10   // black cards: glass, at DOT_GLASS_A over the ground
+#define DOT_GLASS       0x0e1013   // glass cards, rows and the dock: a cool charcoal, so it reads as glass, not brown
+#define DOT_GLASS_A     214        // card opacity (84%)
+#define DOT_ON_GROUND   0xf2f2f0   // header text and the like straight on the ground (6:1 or more)
 #define DOT_RAISED      0x1f1f20   // round buttons, icon wells
 #define DOT_TRACK       0x444444   // unlit dots
 #define DOT_TOGGLE_OFF  0x333333
@@ -14,13 +19,21 @@
 #define DOT_PAPER       0xededeb   // selection and the primary button: white = where you are
 #define DOT_INK         0x111111   // text on paper
 #define DOT_TEXT        0xf2f2f0
-#define DOT_LABEL       0x8d8d8a
-#define DOT_DIM         0x5a5a58
+#define DOT_LABEL       0x9d9d9a
+#define DOT_DIM         0x7a7a77   // 4.5:1 on a card: disabled, but still readable
 #define DOT_SCRIM_ALPHA 179        // Night: black at 70% over video
 // The accent is a state dot only (playing, paused, resume, live), never focus. One per app:
-#define DOT_ACCENT_KINO      0xff6a2b   // follows the video's colour when playing
-#define DOT_ACCENT_MUSICDISK 0xff3b30
-#define DOT_ACCENT_TUNER     0x34c759
+#define DOT_ACCENT_KINO      0xff8a3d   // copper-orange; on the cards it follows the video's colour when playing
+#define DOT_ACCENT_MUSICDISK 0xff4f9a   // magenta: off the status red, so "playing" never reads as an error
+#define DOT_ACCENT_TUNER     0x2fc8d8   // cyan: off the status green, so "live" never reads as "connected"
+#define DOT_ACCENT_SPEED     0xbf7bff   // violet
+
+// Each app's look: its ground (three stops at the same lightness in every app) and its accent. dot_set_theme().
+typedef struct { unsigned int ground_hi, ground_mid, ground_lo, accent; } DotTheme;
+#define DOT_THEME_KINO      { 0x7d4f23, 0x61370d, 0x4d2807, DOT_ACCENT_KINO }        // evening copper
+#define DOT_THEME_TUNER     { 0x1e6573, 0x0f4b58, 0x063b46, DOT_ACCENT_TUNER }       // teal
+#define DOT_THEME_MUSICDISK { 0x80455d, 0x632f44, 0x4e2235, DOT_ACCENT_MUSICDISK }   // rose
+#define DOT_THEME_SPEED     { 0x5a5287, 0x423a6a, 0x332c54, DOT_ACCENT_SPEED }       // violet
 // Status, shared by every app: dots, short text, thin outlines and chart marks, never fills; always with a word or icon.
 // Each has a darker shade for the paper (selected) surface. Contrast: 6.9-10.5 on card, 4.6-5.2 on paper.
 #define DOT_GOOD             0x4fd18b   // won, done, saved, connected
@@ -63,14 +76,14 @@ enum DotType {
 #define DOT_R_POSTER 16
 #define DOT_POSTER_W 176   // grid: 5 x 2 posters at a 192 x 280 pitch fill content 96-640
 #define DOT_POSTER_H 264
-#define DOT_ROW_H 78
-#define DOT_WELL 46
+#define DOT_ROW_H 96
+#define DOT_WELL 56
 #define DOT_ROUND 76
 #define DOT_ROUND_BIG 96
-#define DOT_KEY 58
-#define DOT_PILL_H 56
-#define DOT_CHIP_H 48
-#define DOT_OPT_H 48
+#define DOT_KEY 62
+#define DOT_PILL_H 60
+#define DOT_CHIP_H 56
+#define DOT_OPT_H 64
 #define DOT_TOGGLE_W 64
 #define DOT_TOGGLE_H 36
 #define DOT_DOT_R 4        // progress dots

@@ -15,15 +15,16 @@ enum { F_DOTO, F_SEMI, F_MED, F_REG, F_MONO, NFONTS };
 static const char *FONT_FILE[NFONTS] = { "Doto-Black.ttf", "Geist-SemiBold.ttf", "Geist-Medium.ttf",
                                          "Geist-Regular.ttf", "GeistMono-Medium.ttf" };
 static const struct { int font, px; float lh, track; int upper; } ST[DOT_NSTYLES] = {
+  // Sized for the Brick's 400 ppi panel: body text 32 px is a 2 mm letter, nothing smaller than 24 px.
   [DOT_DISPLAY_XL] = { F_DOTO, 92, 1, 0, 0 },     [DOT_DISPLAY_L] = { F_DOTO, 70, 1, 0, 0 },
-  [DOT_DISPLAY_M] = { F_DOTO, 48, 1, 0, 0 },      [DOT_TITLE] = { F_SEMI, 32, 1.15f, 0, 0 },
-  [DOT_BODY] = { F_MED, 25, 1.2f, 0, 0 },         [DOT_BODY_S] = { F_REG, 24, 1.3f, 0, 0 },
-  [DOT_LABEL_T] = { F_MONO, 22, 1, .14f, 1 },     [DOT_VALUE] = { F_MONO, 22, 1, 0, 0 },
-  [DOT_UI] = { F_MED, 24, 1.2f, 0, 0 },           [DOT_CHIP_T] = { F_MED, 23, 1.2f, 0, 0 },
-  [DOT_SMALL] = { F_REG, 22, 1.2f, 0, 0 },        [DOT_KEY_T] = { F_MONO, 22, 1, 0, 0 },
-  [DOT_KEY_WIDE] = { F_MONO, 22, 1, .06f, 0 },    [DOT_PILL_MONO] = { F_MONO, 22, 1, .1f, 1 },
-  [DOT_PANEL_T] = { F_MONO, 26, 1, .14f, 1 },
-  [DOT_VALUE_L] = { F_MONO, 30, 1, 0, 0 },
+  [DOT_DISPLAY_M] = { F_DOTO, 52, 1, 0, 0 },      [DOT_TITLE] = { F_SEMI, 40, 1.15f, 0, 0 },
+  [DOT_BODY] = { F_MED, 32, 1.2f, 0, 0 },         [DOT_BODY_S] = { F_MED, 28, 1.3f, 0, 0 },
+  [DOT_LABEL_T] = { F_MONO, 28, 1, .08f, 1 },     [DOT_VALUE] = { F_MONO, 28, 1, 0, 0 },
+  [DOT_UI] = { F_MED, 30, 1.2f, 0, 0 },           [DOT_CHIP_T] = { F_MED, 28, 1.2f, 0, 0 },
+  [DOT_SMALL] = { F_MED, 26, 1.2f, 0, 0 },        [DOT_KEY_T] = { F_MONO, 26, 1, 0, 0 },
+  [DOT_KEY_WIDE] = { F_MONO, 24, 1, .04f, 0 },    [DOT_PILL_MONO] = { F_MONO, 24, 1, .08f, 1 },
+  [DOT_PANEL_T] = { F_MONO, 26, 1, .1f, 1 },
+  [DOT_VALUE_L] = { F_MONO, 32, 1, 0, 0 },
 };
 
 struct Dot {
@@ -33,6 +34,8 @@ struct Dot {
   Ent cache[CACHE_CAP];
   int ncache;
   Uint32 frame, accent;
+  Uint32 (*backdrop)(float x, float y);   // set: what is behind instead of the ground (for corners)
+  Uint32 g[3];   // the ground's stops (the theme's)
   int night, ground, alpha;
   // Doto colon geometry per display style: dot diameter, centre heights above the baseline, advance
   float colon_d[3], colon_lo[3], colon_hi[3];
@@ -155,12 +158,19 @@ static Ent *tex_card(Dot *d, int w, int h, int r) {
     for (int x = 0; x < W; x++) a[y * W + x] = .28f * cov_rrect(x + .5f, y + .5f, P, P + 10, w, h, r);
   blur(a, W, H, 12);
   SDL_Surface *s = surf(W, H);
+  // Glass, but not glass: the body is translucent (the ground's colour comes through), with a soft light sheen at the
+  // top and a thin light rim brighter along the top edge. The shadow only shows outside the card.
   for (int y = 0; y < H; y++) {
     Uint32 *row = (Uint32 *)((Uint8 *)s->pixels + y * s->pitch);
+    float t = clampf((y - P) / (float)h, 0, 1);
     for (int x = 0; x < W; x++) {
+      float in = cov_rrect(x + .5f, y + .5f, P, P, w, h, r);
+      float rim = in - cov_rrect(x + .5f, y + .5f, P + 1.5f, P + 1.5f, w - 3, h - 3, r - 1.5f);
       row[x] = 0;
-      over(&row[x], 0x000000, a[y * W + x]);
-      over(&row[x], DOT_CARD, cov_rrect(x + .5f, y + .5f, P, P, w, h, r));
+      over(&row[x], 0x000000, a[y * W + x] * (1 - in));
+      over(&row[x], DOT_GLASS, in * DOT_GLASS_A / 255.f);
+      over(&row[x], 0xffffff, in * clampf(.07f * (1 - t / .45f), 0, 1));
+      over(&row[x], 0xffffff, rim * (.22f - .14f * t));
     }
   }
   free(a);
@@ -361,6 +371,7 @@ Dot *dot_init(SDL_Renderer *r, const char *font_dir, Uint32 accent) {
   if (!TTF_WasInit() && TTF_Init() < 0) return NULL;
   Dot *d = calloc(1, sizeof *d);
   d->r = r; d->accent = accent; d->alpha = 255;
+  d->g[0] = DOT_GROUND_HI; d->g[1] = DOT_GROUND_MID; d->g[2] = DOT_GROUND_LO;
   char path[1024];
   for (int i = 0; i < DOT_NSTYLES; i++) {
     snprintf(path, sizeof path, "%s/%s", font_dir, FONT_FILE[ST[i].font]);
@@ -394,13 +405,18 @@ void dot_set_accent(Dot *d, Uint32 rgb) { d->accent = rgb; }
 Uint32 dot_accent(Dot *d) { return d->accent; }
 void dot_set_night(Dot *d, int on) { d->night = on; }
 void dot_set_ground(Dot *d, int v) { d->ground = v; }
+void dot_set_theme(Dot *d, const DotTheme *t) {
+  d->g[0] = t->ground_hi; d->g[1] = t->ground_mid; d->g[2] = t->ground_lo; d->accent = t->accent;
+}
+void dot_set_backdrop(Dot *d, Uint32 (*fn)(float x, float y)) { d->backdrop = fn; }
 
 // --- base -------------------------------------------------------------------------------------------------------
 static float lerp(float a, float b, float t) { return a + (b - a) * t; }
 
 // The ground's colour at a point (no dither): for things that must blend into it, like rounded image corners.
 static Uint32 ground_rgb(Dot *d, float x, float y) {
-  const Uint32 stop[3] = { DOT_GROUND_HI, DOT_GROUND_MID, DOT_GROUND_LO };
+  if (d->backdrop) return d->backdrop(x, y);
+  const Uint32 *stop = d->g;
   float cx = d->ground == DOT_GROUND_TOPCENTRE ? DOT_W / 2.f : 0, dx = (x - cx) / (DOT_W * 1.2f), dy = y / (DOT_H * .9f);
   float t = sqrtf(dx * dx + dy * dy), u = t < .7f ? t / .7f : clampf((t - .7f) / .3f, 0, 1);
   Uint32 a = t < .7f ? stop[0] : stop[1], b = t < .7f ? stop[1] : stop[2], o = 0;
@@ -409,12 +425,12 @@ static Uint32 ground_rgb(Dot *d, float x, float y) {
 }
 
 void dot_ground(Dot *d) {
-  char key[32]; snprintf(key, sizeof key, "ground:%d", d->ground);
+  char key[48]; snprintf(key, sizeof key, "ground:%d:%06x:%06x:%06x", d->ground, (unsigned)d->g[0], (unsigned)d->g[1], (unsigned)d->g[2]);
   Ent *e = cache_get(d, key);
   if (!e) {
     // CSS radial-gradient(120% 90% at <centre>, hi, mid 70%, lo), with a 4x4 ordered dither against banding.
     static const int bayer[4][4] = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
-    const Uint32 stop[3] = { DOT_GROUND_HI, DOT_GROUND_MID, DOT_GROUND_LO };
+    const Uint32 *stop = d->g;
     float cx = d->ground == DOT_GROUND_TOPCENTRE ? DOT_W / 2.f : 0, rx = DOT_W * 1.2f, ry = DOT_H * .9f;
     SDL_Surface *s = surf(DOT_W, DOT_H);
     for (int y = 0; y < DOT_H; y++) {
@@ -422,7 +438,7 @@ void dot_ground(Dot *d) {
       for (int x = 0; x < DOT_W; x++) {
         float dx = (x + .5f - cx) / rx, dy = (y + .5f) / ry, t = sqrtf(dx * dx + dy * dy);
         Uint32 a = t < .7f ? stop[0] : stop[1], b = t < .7f ? stop[1] : stop[2];
-        float u = t < .7f ? t / .7f : clampf((t - .7f) / .3f, 0, 1), dith = bayer[y & 3][x & 3] / 16.f - .5f;
+        float u = t < .7f ? t / .7f : clampf((t - .7f) / .3f, 0, 1), dith = (bayer[y & 3][x & 3] / 16.f - .5f) * 3;   // +-1.5: 6-bit panels
         Uint32 o = 0xff000000;
         for (int sh = 0; sh < 24; sh += 8)
           o |= (Uint32)clampf(lerp(a >> sh & 255, b >> sh & 255, u) + dith + .5f, 0, 255) << sh;
@@ -443,10 +459,15 @@ void dot_scrim(Dot *d) {
 void dot_rect(Dot *d, int x, int y, int w, int h, int r, Uint32 rgb, int alpha) {
   blit(d, tex_rrect(d, w, h, r, 0), x, y, rgb, alpha);
 }
-static void ring(Dot *d, int x, int y, int w, int h, int r, int t, Uint32 rgb) {
-  blit(d, tex_rrect(d, w, h, r, t), x, y, rgb, 255);
+void dot_card(Dot *d, int x, int y, int w, int h) {
+  if (d->night) dot_rect(d, x, y, w, h, DOT_R_CARD, DOT_CARD, 255);   // over video: solid, so nothing shows through
+  blit(d, tex_card(d, w, h, DOT_R_CARD), x, y, 0xffffff, 255);
 }
-void dot_card(Dot *d, int x, int y, int w, int h) { blit(d, tex_card(d, w, h, DOT_R_CARD), x, y, 0xffffff, 255); }
+// A glass row or pill: translucent body and a light hairline rim.
+static void glass(Dot *d, int x, int y, int w, int h, int r) {
+  blit(d, tex_rrect(d, w, h, r, 0), x, y, DOT_GLASS, DOT_GLASS_A * d->alpha / 255);
+  blit(d, tex_rrect(d, w, h, r, 1), x, y, 0xffffff, 34 * d->alpha / 255);
+}
 void dot_circle(Dot *d, int cx, int cy, int r, Uint32 rgb) { dot_rect(d, cx - r, cy - r, 2 * r, 2 * r, r, rgb, 255); }
 void dot_adot(Dot *d, int x, int y, Uint32 rgb) { dot_rect(d, x, y, 14, 14, 7, rgb, 255); }
 void dot_icon(Dot *d, int icon, int cx, int cy, int size, Uint32 rgb) {
@@ -473,7 +494,13 @@ void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg) {
                                    (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL) };
   for (int i = 0; i < 4; i++) {
     SDL_Rect dst = { i & 1 ? x + w - r : x, i & 2 ? y + h - r : y, r, r };
-    Uint32 c = bg == DOT_BG_GROUND ? ground_rgb(d, dst.x + r / 2.f, dst.y + r / 2.f) : bg;
+    Uint32 c = bg;
+    if (bg == DOT_BG_GROUND || bg == DOT_BG_GLASS) c = ground_rgb(d, dst.x + r / 2.f, dst.y + r / 2.f);
+    if (bg == DOT_BG_GLASS) {   // the card over that ground (no sheen: pictures sit below the top)
+      Uint32 m = 0; float ga = DOT_GLASS_A / 255.f;
+      for (int sh = 0; sh < 24; sh += 8) m |= (Uint32)lerp(c >> sh & 255, DOT_CARD >> sh & 255, ga) << sh;
+      c = m;
+    }
     SDL_SetTextureColorMod(e->t, c >> 16 & 255, c >> 8 & 255, c & 255);
     SDL_RenderCopyEx(d->r, e->t, NULL, &dst, 0, NULL, fl[i]);
   }
@@ -506,7 +533,7 @@ void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus,
 
 // --- components -------------------------------------------------------------------------------------------------
 void dot_header(Dot *d, const char *crumb, const char *count) {
-  Uint32 c = d->night ? DOT_LABEL : 0x161616;
+  Uint32 c = d->night ? DOT_LABEL : DOT_ON_GROUND;
   int cw = count ? dot_text_w(d, DOT_LABEL_T, count) : 0;
   if (crumb) dot_text(d, DOT_LABEL_T, crumb, DOT_MARGIN, 30, c, DOT_LEFT, DOT_W - 2 * DOT_MARGIN - cw - 40);
   if (count) dot_text(d, DOT_LABEL_T, count, DOT_W - DOT_MARGIN, 30, c, DOT_RIGHT, 0);
@@ -517,11 +544,12 @@ void dot_title(Dot *d, const char *s) { dot_text(d, DOT_DISPLAY_M, s, DOT_MARGIN
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot) {
   int sel = state & DOT_FOCUS, off = state & DOT_OFF;
-  dot_rect(d, x, y, w, DOT_ROW_H, DOT_R_ROW, sel ? DOT_PAPER : DOT_CARD, 255);
+  if (sel) dot_rect(d, x, y, w, DOT_ROW_H, DOT_R_ROW, DOT_PAPER, 255); else glass(d, x, y, w, DOT_ROW_H, DOT_R_ROW);
   int tx = x + 16, right = x + w - 24, cy = y + DOT_ROW_H / 2;
   if (icon) {
-    dot_circle(d, tx + DOT_WELL / 2, cy, DOT_WELL / 2, sel ? DOT_INK : DOT_RAISED);
-    dot_icon(d, icon, tx + DOT_WELL / 2, cy, 22, sel ? DOT_PAPER : 0xd8d8d5);
+    if (sel) dot_circle(d, tx + DOT_WELL / 2, cy, DOT_WELL / 2, DOT_INK);
+    else dot_rect(d, tx, cy - DOT_WELL / 2, DOT_WELL, DOT_WELL, DOT_WELL / 2, 0xffffff, 26 * d->alpha / 255);
+    dot_icon(d, icon, tx + DOT_WELL / 2, cy, 26, sel ? DOT_PAPER : 0xd8d8d5);
     tx += DOT_WELL + 18;
   } else tx = x + 24;
   if (meta && *meta) right -= text_c(d, DOT_VALUE, meta, right, cy, sel ? 0x333333 : DOT_LABEL, DOT_RIGHT, 0) + 18;
@@ -529,8 +557,8 @@ void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char
   if (state & DOT_STAR) { dot_icon(d, DOT_I_STAR, right - 11, cy, 22, sel ? DOT_INK : DOT_TEXT); right -= 22 + 16; }
   Uint32 nc = sel ? DOT_INK : off ? DOT_DIM : DOT_TEXT;
   if (sub) {
-    text_c(d, DOT_BODY, name, tx, y + 9 + 15, nc, DOT_LEFT, right - tx);
-    text_c(d, DOT_SMALL, sub, tx, y + 43 + 13, sel ? 0x444444 : DOT_LABEL, DOT_LEFT, right - tx);
+    text_c(d, DOT_BODY, name, tx, y + 32, nc, DOT_LEFT, right - tx);
+    text_c(d, DOT_SMALL, sub, tx, y + 68, sel ? 0x444444 : DOT_LABEL, DOT_LEFT, right - tx);
   } else text_c(d, DOT_BODY, name, tx, cy, nc, DOT_LEFT, right - tx);
 }
 
@@ -542,7 +570,8 @@ static int key_w(Dot *d, const char *key) {
 int dot_key(Dot *d, int x, int y, const char *key, int primary, int off) {
   int w = key_w(d, key), cy = y + DOT_KEY / 2;
   Uint32 bg = primary ? DOT_PAPER : off ? DOT_RAISED : DOT_CARD, fg = primary ? DOT_INK : off == 1 ? DOT_DIM : DOT_TEXT;
-  dot_rect(d, x, y, w, DOT_KEY, DOT_KEY / 2, bg, 255);
+  if (!primary && off >= 2) dot_rect(d, x, y, w, DOT_KEY, DOT_KEY / 2, 0xffffff, 40 * d->alpha / 255);   // on dark glass
+  else dot_rect(d, x, y, w, DOT_KEY, DOT_KEY / 2, bg, 255);
   if (!strcmp(key, "<>")) {
     dot_icon(d, DOT_I_LEFT, x + 20 + 9, cy, 18, fg);
     dot_icon(d, DOT_I_RIGHT, x + w - 20 - 9, cy, 18, fg);
@@ -563,7 +592,7 @@ int dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align)
   if (align == DOT_RIGHT) x -= w; else if (align == DOT_CENTER) x -= w / 2;
   dot_rect(d, x, y, w, DOT_PILL_H, DOT_PILL_H / 2, DOT_CARD, 219);
   int tx = x + 24;
-  if (adot) { dot_adot(d, tx, y + 21, d->accent); tx += 28; }
+  if (adot) { dot_adot(d, tx, y + (DOT_PILL_H - 14) / 2, d->accent); tx += 28; }
   text_c(d, st, s, tx, y + DOT_PILL_H / 2, DOT_TEXT, DOT_LEFT, 0);
   return w;
 }
@@ -583,7 +612,7 @@ int dot_chip(Dot *d, int x, int y, const char *s, int state) {
     dot_rect(d, x - 3, y - 3, w + 6, h + 6, r + 3, DOT_CARD, 255);
   }
   if (on) dot_rect(d, x, y, w, h, r, DOT_PAPER, 255);
-  else ring(d, x, y, w, h, r, 2, off ? 0x2a2a2a : DOT_LINE);
+  else blit(d, tex_rrect(d, w, h, r, 2), x, y, 0xffffff, (off ? 30 : 64) * d->alpha / 255);   // a light outline: reads on glass
   text_c(d, DOT_CHIP_T, s, x + w / 2, y + h / 2, on ? DOT_INK : off ? DOT_DIM : DOT_TEXT, DOT_CENTER, 0);
   return w;
 }
@@ -601,8 +630,9 @@ int dot_chips(Dot *d, int x, int y, int w, const char **s, int n, int on, int fo
 void dot_toggle(Dot *d, int x, int y, int on, int focused) {
   Uint32 bg, knob;
   if (on) { bg = focused ? DOT_INK : DOT_PAPER; knob = focused ? DOT_PAPER : DOT_INK; }
-  else { bg = focused ? 0xc9c9c6 : DOT_TOGGLE_OFF; knob = focused ? 0x8a8a87 : 0x777777; }
-  dot_rect(d, x, y, DOT_TOGGLE_W, DOT_TOGGLE_H, DOT_TOGGLE_H / 2, bg, 255);
+  else { bg = focused ? 0xc9c9c6 : DOT_TOGGLE_OFF; knob = focused ? 0x8a8a87 : 0x9a9a97; }
+  if (!on && !focused) dot_rect(d, x, y, DOT_TOGGLE_W, DOT_TOGGLE_H, DOT_TOGGLE_H / 2, 0xffffff, 46 * d->alpha / 255);   // on glass
+  else dot_rect(d, x, y, DOT_TOGGLE_W, DOT_TOGGLE_H, DOT_TOGGLE_H / 2, bg, 255);
   dot_circle(d, x + (on ? 32 : 4) + 14, y + 18, 14, knob);
 }
 
@@ -658,12 +688,18 @@ int dot_panel_h(int content_h) { return DOT_PAD + 26 + 20 + content_h + DOT_PAD;
 
 void dot_dock(Dot *d, const DotHint *h, int n) {
   if (n > 4) n = 4;
-  dot_rect(d, DOT_MARGIN, DOT_DOCK_Y, DOT_W - 2 * DOT_MARGIN, DOT_DOCK_H, DOT_DOCK_H / 2, 0xffffff, d->night ? 31 : 41);
+  // Glass: a thin fill that lets the ground (or the video, as smoked glass) show through, and a light hairline edge.
+  int dx = DOT_MARGIN, dw = DOT_W - 2 * DOT_MARGIN, rr = DOT_R_CARD;   // the cards' radius
+  dot_rect(d, dx, DOT_DOCK_Y, dw, DOT_DOCK_H, rr, DOT_GLASS, 150 * d->alpha / 255);   // dark glass: light text at 12:1 or more
+  blit(d, tex_rrect(d, dw, DOT_DOCK_H, rr, 2), dx, DOT_DOCK_Y, 0xffffff, 56 * d->alpha / 255);
   int total = 0, cy = DOT_DOCK_Y + DOT_DOCK_H / 2;
-  for (int i = 0; i < n; i++) total += key_w(d, h[i].key) + 14 + dot_text_w(d, DOT_UI, h[i].text) + (i ? 44 : 0);
+  int gap = 44, room = DOT_W - 2 * DOT_MARGIN - 48;
+  for (int i = 0; i < n; i++) total += key_w(d, h[i].key) + 14 + dot_text_w(d, DOT_UI, h[i].text);
+  if (n > 1 && total + gap * (n - 1) > room) gap = (room - total) / (n - 1) < 20 ? 20 : (room - total) / (n - 1);
+  total += gap * (n - 1);
   int x = DOT_W / 2 - total / 2;
   for (int i = 0; i < n; i++) {
-    x += dot_key(d, x, cy - DOT_KEY / 2, h[i].key, i == 0, 0) + 14;
-    x += text_c(d, DOT_UI, h[i].text, x, cy, d->night ? DOT_TEXT : 0x141414, DOT_LEFT, 0) + 44;
+    x += dot_key(d, x, cy - DOT_KEY / 2, h[i].key, i == 0, 3) + 14;
+    x += text_c(d, DOT_UI, h[i].text, x, cy, DOT_TEXT, DOT_LEFT, 0) + gap;
   }
 }

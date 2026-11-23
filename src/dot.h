@@ -34,6 +34,9 @@ void dot_set_accent(Dot *d, Uint32 rgb);     // Kino: follows the video's colour
 Uint32 dot_accent(Dot *d);
 void dot_set_night(Dot *d, int on);          // Night scheme: over video; header text and dock change
 void dot_set_ground(Dot *d, int variant);    // DOT_GROUND_*
+void dot_set_theme(Dot *d, const DotTheme *t);   // the app's ground and accent (DOT_THEME_*); the default is neutral
+// Something else drawn behind instead of the ground (a picture): its colour at a point, for rounded corners. NULL: the ground.
+void dot_set_backdrop(Dot *d, Uint32 (*fn)(float x, float y));
 
 // --- base -------------------------------------------------------------------------------------------------------
 void dot_ground(Dot *d);                                     // full-screen grey ground (baked once)
@@ -46,6 +49,7 @@ void dot_icon(Dot *d, int icon, int cx, int cy, int size, Uint32 rgb);
 // Rounds an image's corners by painting the outside of a radius-r corner in bg (the colour behind the image).
 void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg);   // bg DOT_BG_GROUND: the ground there
 #define DOT_BG_GROUND 0xff000000
+#define DOT_BG_GLASS 0xfe000000   // on a glass card: the card over the ground
 // Poster/cover on the ground, radius 16: focus = the round-button ring; progress > 0 = dot progress on a strip
 // along the bottom; seen = dimmed; fresh = accent dot top-right. img NULL = a placeholder.
 void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus, float progress, int seen, int fresh);
@@ -60,7 +64,7 @@ int dot_time(Dot *d, int style, const char *s, int x, int y, Uint32 rgb, int ali
 // --- components -------------------------------------------------------------------------------------------------
 void dot_header(Dot *d, const char *crumb, const char *count);   // crumb left, count right, y 30
 void dot_title(Dot *d, const char *s);                           // Display M screen title at 40,28 (options)
-// List row (h 78). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
+// List row (h 96). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot);
 int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // off 1 disabled, 2 on a card; returns width
@@ -76,8 +80,8 @@ void dot_progress(Dot *d, int x, int y, int w, float frac, int knob);   // h 24;
 void dot_opt(Dot *d, int x, int y, int w, const char *label, const char *value, int state);
 void dot_opt_toggle(Dot *d, int x, int y, int w, const char *label, int on, int state);
 void dot_opt_slider(Dot *d, int x, int y, int w, const char *label, float frac, int state);
-// Padded card with a heading on top; returns the y where its content starts (option rows follow at 56 pitch).
+// Padded card with a heading on top; returns the y where its content starts (option rows follow at 72 pitch).
 int  dot_panel(Dot *d, int x, int y, int w, int h, const char *label);
 int  dot_panel_h(int content_h);   // card height for that much content under a heading
-#define DOT_OPT_PITCH 56
+#define DOT_OPT_PITCH 72
 void dot_dock(Dot *d, const DotHint *h, int n);                  // at most four hints
