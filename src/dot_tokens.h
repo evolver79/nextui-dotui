@@ -10,7 +10,7 @@
 #define DOT_GROUND_LO   0x333333
 #define DOT_CARD        0x0f0f10   // black cards: glass, at DOT_GLASS_A over the ground
 #define DOT_GLASS       0x0e1013   // glass cards, rows and the dock: a cool charcoal, so it reads as glass, not brown
-#define DOT_GLASS_A     214        // card opacity (84%)
+#define DOT_GLASS_A     235        // card opacity (92%)
 #define DOT_ON_GROUND   0xf2f2f0   // header text and the like straight on the ground (6:1 or more)
 #define DOT_RAISED      0x1f1f20   // round buttons, icon wells
 #define DOT_TRACK       0x444444   // unlit dots
