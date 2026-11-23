@@ -23,14 +23,14 @@
 #define DOT_DIM         0x7a7a77   // 4.5:1 on a card: disabled, but still readable
 #define DOT_SCRIM_ALPHA 179        // Night: black at 70% over video
 // The accent is a state dot only (playing, paused, resume, live), never focus. One per app:
-#define DOT_ACCENT_KINO      0xff8a3d   // copper-orange; on the cards it follows the video's colour when playing
+#define DOT_ACCENT_KINO      0x5cc9ff   // sky blue; on the cards it follows the video's colour when playing
 #define DOT_ACCENT_MUSICDISK 0xff4f9a   // magenta: off the status red, so "playing" never reads as an error
 #define DOT_ACCENT_TUNER     0x2fc8d8   // cyan: off the status green, so "live" never reads as "connected"
 #define DOT_ACCENT_SPEED     0xbf7bff   // violet
 
 // Each app's look: its ground (three stops at the same lightness in every app) and its accent. dot_set_theme().
 typedef struct { unsigned int ground_hi, ground_mid, ground_lo, accent; } DotTheme;
-#define DOT_THEME_KINO      { 0x7d4f23, 0x61370d, 0x4d2807, DOT_ACCENT_KINO }        // evening copper
+#define DOT_THEME_KINO      { 0x385c8a, 0x23436c, 0x183355, DOT_ACCENT_KINO }        // midnight blue
 #define DOT_THEME_TUNER     { 0x1e6573, 0x0f4b58, 0x063b46, DOT_ACCENT_TUNER }       // teal
 #define DOT_THEME_MUSICDISK { 0x80455d, 0x632f44, 0x4e2235, DOT_ACCENT_MUSICDISK }   // rose
 #define DOT_THEME_SPEED     { 0x5a5287, 0x423a6a, 0x332c54, DOT_ACCENT_SPEED }       // violet
