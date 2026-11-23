@@ -224,31 +224,30 @@ static void components(void) {
   dot_set_accent(D, DOT_ACCENT_KINO);
   dot_ground(D);
   dot_header(D, "Components", "sheet");
+  // Laid out at the current sizes: keys 62, chips 56, pills 60, rows 96 at a 108 pitch, content band 96..640.
   int x = 40;
-  x += dot_key(D, x, 80, "A", 1, 0) + 12; x += dot_key(D, x, 80, "B", 0, 0) + 12; x += dot_key(D, x, 80, "X", 0, 1) + 12;
-  x += dot_key(D, x, 80, "L1 R1", 0, 0) + 12; x += dot_key(D, x, 80, "<>", 0, 0) + 12; x += dot_key(D, x, 80, "MENU", 0, 0) + 30;
-  dot_round(D, x + 38, 109, DOT_I_PREV, 0, 0); dot_round(D, x + 142, 109, DOT_I_PAUSE, 1, DOT_FOCUS);
-  dot_round(D, x + 246, 109, DOT_I_NEXT, 0, DOT_OFF);
+  x += dot_key(D, x, 96, "A", 1, 0) + 12; x += dot_key(D, x, 96, "B", 0, 0) + 12; x += dot_key(D, x, 96, "X", 0, 1) + 12;
+  x += dot_key(D, x, 96, "L1 R1", 0, 0) + 12; x += dot_key(D, x, 96, "<>", 0, 0) + 12; x += dot_key(D, x, 96, "MENU", 0, 0) + 30;
+  dot_round(D, x + 38, 127, DOT_I_PREV, 0, 0); dot_round(D, x + 142, 127, DOT_I_PAUSE, 1, DOT_FOCUS);
+  dot_round(D, x + 246, 127, DOT_I_NEXT, 0, DOT_OFF);
   x = 40;
-  x += dot_chip(D, x, 168, "Original", DOT_ON) + 14; x += dot_chip(D, x, 168, "16:9", DOT_FOCUS) + 14;
-  x += dot_chip(D, x, 168, "Zoom", DOT_ON | DOT_FOCUS) + 14; x += dot_chip(D, x, 168, "Off", DOT_OFF) + 24;
-  dot_toggle(D, x, 174, 1, 0); dot_toggle(D, x + 80, 174, 0, 0);
-  dot_slider(D, x + 170, 186, .5f, 0);
-  dot_pill(D, 40, 236, "The Long Harbour", 1, 0, DOT_LEFT);
-  dot_pill(D, 400, 236, "1080p · 5.1", 0, 1, DOT_LEFT);
-  dot_progress(D, 620, 252, 364, .6f, 1);
-  dot_row(D, 40, 310, 460, DOT_I_FOLDER, "A very long folder name that will not fit in the row", NULL, "128", 0, 0);
-  dot_row(D, 524, 310, 460, DOT_I_NOTE, "Space Debris", "Captain · 1990 · MOD", "4:12", DOT_FOCUS, 1);
-  dot_row(D, 40, 404, 460, DOT_I_SD, "Card unavailable", NULL, NULL, DOT_OFF, 0);
-  dot_row(D, 524, 404, 460, 0, "No icon, accent dot", NULL, "LIVE", 0, 1);
-  dot_card(D, 40, 498, 944, 130);
-  dot_time(D, DOT_DISPLAY_XL, "09:35", 70, 516, DOT_TEXT, DOT_LEFT);
-  dot_time(D, DOT_DISPLAY_L, "1:52:08", 380, 527, DOT_TEXT, DOT_LEFT);
-  dot_time(D, DOT_DISPLAY_M, "12:00", 760, 538, DOT_LABEL, DOT_LEFT);
-  dot_text(D, DOT_DISPLAY_M, "41:12", 760, 580, DOT_DIM, DOT_LEFT, 0);   // Doto's own colon, for comparison
+  x += dot_chip(D, x, 184, "Original", DOT_ON) + 14; x += dot_chip(D, x, 184, "16:9", DOT_FOCUS) + 14;
+  x += dot_chip(D, x, 184, "Zoom", DOT_ON | DOT_FOCUS) + 14; x += dot_chip(D, x, 184, "Off", DOT_OFF) + 24;
+  dot_toggle(D, x, 194, 1, 0); dot_toggle(D, x + 80, 194, 0, 0);
+  dot_slider(D, x + 170, 206, .5f, 0);
+  int pw = dot_pill(D, 40, 254, "The Long Harbour", 1, 0, DOT_LEFT);
+  dot_pill(D, 40 + pw + 14, 254, "1080p · 5.1", 0, 1, DOT_LEFT);
+  dot_pill(D, 984, 254, "Saved", 1, 0, DOT_RIGHT);   // a toast's pill (dot_toast puts it bottom centre)
+  dot_row(D, 40, 330, 460, DOT_I_FOLDER, "A very long folder name that will not fit in the row", NULL, "128", 0, 0);
+  dot_row(D, 524, 330, 460, DOT_I_NOTE, "Space Debris", "Captain · 1990 · MOD", "4:12", DOT_FOCUS, 1);
+  dot_row(D, 40, 438, 460, DOT_I_SD, "Card unavailable", NULL, NULL, DOT_OFF, 0);
+  dot_row(D, 524, 438, 460, 0, "No icon, accent dot", NULL, "LIVE", 0, 1);
+  dot_card(D, 40, 546, 944, 94);
+  dot_time(D, DOT_DISPLAY_L, "09:35", 70, 558, DOT_TEXT, DOT_LEFT);
+  dot_time(D, DOT_DISPLAY_M, "1:52:08", 330, 567, DOT_TEXT, DOT_LEFT);
+  dot_progress(D, 600, 581, 354, .6f, 1);
   DotHint h[] = { { "A", "Play" }, { "B", "Back" } };
   dot_dock(D, h, 2);
-  dot_toast(D, "Saved where you stopped", 1);
 }
 
 int main(int argc, char **argv) {

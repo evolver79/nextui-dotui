@@ -12,14 +12,19 @@
   --bench: #141415; --bench-2: #1c1c1e; --page: #ecebe8; --page-2: #a3a29e; --page-line: #2e2f33;
   --anno: #6fd3ff;                       /* measurement marks only, never on the device */
   /* Dot tokens: the C library uses exactly these */
-  --ground-a: #a3a3a1; --ground-b: #6d6d6b; --ground-c: #5c5c5a;
-  --card: #0f0f10; --raised: #1f1f20; --track: #444444; --toggle-off: #333333; --line: #3a3a3a;
-  --paper: #ededeb; --ink: #111111; --text: #f2f2f0; --label: #8d8d8a; --dim: #5a5a58;
-  --acc: #ff6a2b;
+  --ground-a: #5b5b5b; --ground-b: #424242; --ground-c: #333333;   /* neutral default; each app sets its own (.th-*) */
+  --card: #0f0f10; --glass: rgba(14,16,19,.92); --raised: #1f1f20; --track: #444444; --toggle-off: #333333; --line: #3a3a3a;
+  --paper: #ededeb; --ink: #111111; --text: #f2f2f0; --on-ground: #f2f2f0; --label: #9d9d9a; --dim: #7a7a77;
+  --acc: #5cc9ff;
   --display: "Doto", "Geist Mono", ui-monospace, monospace;
   --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
+/* app themes: dot_set_theme(d, &DOT_THEME_*) */
+.th-kino      { --ground-a: #385c8a; --ground-b: #23436c; --ground-c: #183355; --acc: #5cc9ff; }
+.th-tuner     { --ground-a: #1e6573; --ground-b: #0f4b58; --ground-c: #063b46; --acc: #2fc8d8; }
+.th-musicdisk { --ground-a: #80455d; --ground-b: #632f44; --ground-c: #4e2235; --acc: #ff4f9a; }
+.th-speed     { --ground-a: #5a5287; --ground-b: #423a6a; --ground-c: #332c54; --acc: #bf7bff; }
 body { background: var(--bench); color: var(--page); font-family: var(--sans); font-size: 15px; line-height: 1.5; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-block: 48px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 72px; }
 a { color: var(--page); }
@@ -51,8 +56,10 @@ h3 { margin: 0; font: 500 12px var(--mono); letter-spacing: .14em; text-transfor
 
 /* swatches */
 .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.sw.th { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .sw figure { margin: 0; background: var(--bench-2); border: 1px solid var(--page-line); border-radius: 16px; overflow: hidden; }
-.sw .chip-c { height: 84px; border-bottom: 1px solid var(--page-line); }
+.sw .chip-c { height: 84px; border-bottom: 1px solid var(--page-line); position: relative; }
+.sw .chip-c i { position: absolute; right: 14px; top: 14px; width: 18px; height: 18px; border-radius: 50%; }
 .sw figcaption { padding: 10px 12px 12px; display: grid; gap: 2px; }
 .sw figcaption b { font-size: 14px; font-weight: 600; }
 .sw figcaption code { font: 500 12.5px var(--mono); color: var(--page); }
@@ -60,10 +67,10 @@ h3 { margin: 0; font: 500 12px var(--mono); letter-spacing: .14em; text-transfor
 
 /* plates: real-size device samples on the ground */
 .plate { background: radial-gradient(120% 90% at 0% 0%, var(--ground-a), var(--ground-b) 70%, var(--ground-c)); border-radius: 22px; padding: 32px; overflow-x: auto; color: var(--text); font-family: var(--sans); }
-.plate.dark { background: var(--card); }
+.plate.dark { background: linear-gradient(var(--glass), var(--glass)), radial-gradient(120% 90% at 0% 0%, var(--ground-a), var(--ground-b) 70%, var(--ground-c)); }   /* on a glass card */
 .row-of { display: flex; flex-wrap: wrap; gap: 20px 28px; align-items: center; }
 .cell { display: grid; gap: 10px; justify-items: start; }
-.cap { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #262626; }
+.cap { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: rgba(242,242,240,.78); }
 .plate.dark .cap { color: var(--label); }
 
 /* frames: a 1024x768 screen scaled to fit */
@@ -82,28 +89,33 @@ figure.f figcaption b { color: var(--page); font-weight: 600; }
 .D .dm { font-family: var(--display); font-weight: 900; line-height: 1; letter-spacing: .02em; }
 .D .t-xl { font: 900 92px/1 var(--display); }
 .D .t-l  { font: 900 70px/1 var(--display); }
-.D .t-m  { font: 900 48px/1 var(--display); }
-.D .t-title { font: 600 32px/1.15 var(--sans); }
-.D .t-body { font: 500 25px/1.2 var(--sans); }
-.D .t-bodys { font: 400 24px/1.3 var(--sans); }
-.D .lab, .lab { font: 500 22px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--label); }
-.D .val, .val { font: 500 22px/1 var(--mono); color: var(--label); }
-.D .crumb { position: absolute; left: 40px; top: 30px; font: 500 22px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #161616; }
-.D .count { position: absolute; right: 40px; top: 30px; font: 500 22px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #161616; }
+.D .t-m  { font: 900 52px/1 var(--display); }
+.D .t-title { font: 600 40px/1.15 var(--sans); }
+.D .t-body { font: 500 32px/1.2 var(--sans); }
+.D .t-bodys { font: 500 28px/1.3 var(--sans); }
+.D .lab, .lab { font: 500 28px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--label); }
+.D .val, .val { font: 500 28px/1 var(--mono); color: var(--label); }
+.D .crumb { position: absolute; left: 40px; top: 30px; font: 500 28px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--on-ground); }
+.D .count { position: absolute; right: 40px; top: 30px; font: 500 28px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--on-ground); }
 .D.night .crumb, .D.night .count { color: var(--label); }
 
-.card { background: var(--card); border-radius: 30px; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+/* glass card: translucent charcoal body, a soft sheen at the top, a light rim brighter at the top, shadow outside only */
+.card { position: relative; border-radius: 30px; background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 45%), var(--glass); box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+.card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
 .D .card { position: absolute; }
+.D.night .card { background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 45%), linear-gradient(var(--glass), var(--glass)), var(--card); }   /* over video: solid under the glass */
+.card.paper { background: var(--paper); color: var(--ink); }
+.card.paper::before { display: none; }
 .card.pad { padding: 24px 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
-.hd { font: 500 26px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--label); margin-bottom: 12px; }
-.card.pad .chips { margin-top: 6px; }
+.hd { font: 500 26px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--label); margin-bottom: 12px; }
 .adot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--acc); vertical-align: middle; flex: none; }
 
 /* key caps */
-.key { display: inline-grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: var(--card); color: var(--text); font: 500 22px var(--mono); flex: none; box-sizing: border-box; }
+.key { display: inline-grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; background: var(--card); color: var(--text); font: 500 26px var(--mono); flex: none; box-sizing: border-box; }
 .key.p { background: var(--paper); color: var(--ink); }
-.key.wide { width: auto; padding: 0 20px; border-radius: 29px; letter-spacing: .06em; }
+.key.wide { width: auto; padding: 0 20px; border-radius: 31px; font-size: 24px; letter-spacing: .04em; }
 .key.off { background: var(--raised); color: var(--dim); }
+.key.g, .dock .key:not(.p) { background: rgba(255,255,255,.16); color: var(--text); }   /* on dark glass */
 
 /* round buttons */
 .round { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; background: var(--raised); color: var(--text); font-size: 30px; flex: none; box-sizing: border-box; }
@@ -114,26 +126,26 @@ figure.f figcaption b { color: var(--page); font-weight: 600; }
 .ico { width: 1em; height: 1em; display: inline-block; vertical-align: middle; fill: currentColor; }
 
 /* pill, toast */
-.pill { height: 56px; border-radius: 28px; background: rgba(15,15,16,.86); display: inline-flex; align-items: center; gap: 14px; padding: 0 24px; font: 500 24px var(--sans); color: var(--text); box-sizing: border-box; white-space: nowrap; }
+.pill { height: 60px; border-radius: 30px; background: rgba(15,15,16,.86); display: inline-flex; align-items: center; gap: 14px; padding: 0 24px; font: 500 30px var(--sans); color: var(--text); box-sizing: border-box; white-space: nowrap; }
 .D .pill { position: absolute; }
-.pill.mono { font: 500 22px var(--mono); letter-spacing: .1em; }
+.pill.mono { font: 500 24px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 
-/* chips */
+/* chips: a light outline that reads on glass */
 .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-.chip { height: 48px; padding: 0 20px; border-radius: 24px; border: 2px solid var(--line); display: inline-flex; align-items: center; font: 500 23px var(--sans); color: var(--text); box-sizing: border-box; white-space: nowrap; }
+.chip { height: 56px; padding: 0 20px; border-radius: 24px; border: 2px solid rgba(255,255,255,.25); display: inline-flex; align-items: center; font: 500 28px var(--sans); color: var(--text); box-sizing: border-box; white-space: nowrap; }
 .chip.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
 .chip.focus { box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--paper); }
-.chip.off { color: var(--dim); border-color: #2a2a2a; }
+.chip.off { color: var(--dim); border-color: rgba(255,255,255,.12); }
 
 /* toggle */
-.tg { width: 64px; height: 36px; border-radius: 18px; background: var(--toggle-off); position: relative; flex: none; display: inline-block; }
-.tg::after { content: ""; position: absolute; left: 4px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: #777; }
+.tg { width: 64px; height: 36px; border-radius: 18px; background: rgba(255,255,255,.18); position: relative; flex: none; display: inline-block; }
+.tg::after { content: ""; position: absolute; left: 4px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: #9a9a97; }
 .tg.on { background: var(--paper); }
 .tg.on::after { left: 32px; background: var(--ink); }
 .opt.focus .tg.on, .tg.on.inv { background: var(--ink); }
 .opt.focus .tg.on::after, .tg.on.inv::after { background: var(--paper); }
-.opt.focus .tg:not(.on) { background: #c9c9c6; }
-.opt.focus .tg:not(.on)::after { background: #8a8a87; }
+.opt.focus .tg:not(.on), .tg.fo { background: #c9c9c6; }
+.opt.focus .tg:not(.on)::after, .tg.fo::after { background: #8a8a87; }
 
 /* dot slider (17 px pitch) and dot progress (18 px pitch) */
 .sl { width: 170px; height: 12px; position: relative; flex: none; display: inline-block; background: radial-gradient(circle, var(--track) 4px, transparent 4.5px) 0 50% / 17px 12px repeat-x; }
@@ -146,32 +158,32 @@ figure.f figcaption b { color: var(--page); font-weight: 600; }
 .D .dots { position: absolute; }
 .dots i.focus { box-shadow: 0 0 0 4px var(--card), 0 0 0 8px var(--paper); }
 
-/* list rows */
-.lrow { width: 460px; height: 78px; border-radius: 26px; background: var(--card); display: flex; align-items: center; gap: 18px; padding: 0 24px 0 16px; box-sizing: border-box; font: 500 25px var(--sans); color: var(--text); }
+/* list rows: glass, a 1 px light rim */
+.lrow { width: 460px; height: 96px; border-radius: 26px; background: var(--glass); box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); display: flex; align-items: center; gap: 18px; padding: 0 24px 0 16px; box-sizing: border-box; font: 500 32px/1.2 var(--sans); color: var(--text); }
 .D .lrow { position: absolute; }
-.lrow .ic { width: 46px; height: 46px; border-radius: 50%; background: var(--raised); display: grid; place-items: center; font-size: 22px; flex: none; color: #d8d8d5; }
+.lrow .ic { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.10); display: grid; place-items: center; font-size: 26px; flex: none; color: #d8d8d5; }
 .lrow .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lrow .mt { font: 500 22px var(--mono); color: var(--label); flex: none; }
-.lrow.sel { background: var(--paper); color: var(--ink); }
+.lrow .mt { font: 500 28px var(--mono); color: var(--label); flex: none; display: inline-flex; align-items: center; gap: 12px; }
+.lrow.sel { background: var(--paper); box-shadow: none; color: var(--ink); }
 .lrow.sel .ic { background: var(--ink); color: var(--paper); }
 .lrow.sel .mt { color: #333; }
 .lrow.off { color: var(--dim); }
-.lrow .two { display: grid; flex: 1; min-width: 0; gap: 4px; }
-.lrow .two small { font: 400 22px var(--sans); color: var(--label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow .two { display: grid; flex: 1; min-width: 0; gap: 1px; }
+.lrow .two small { font: 500 26px/1.2 var(--sans); color: var(--label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lrow.sel .two small { color: #444; }
 
 /* option rows */
-.opt { display: flex; align-items: center; justify-content: space-between; gap: 14px; height: 48px; font: 500 24px var(--sans); padding: 0 14px; margin: 0 -14px; border-radius: 22px; color: var(--text); }
-.opt .v { font: 500 22px var(--mono); color: #a9a9a6; }
+.opt { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 64px; font: 500 30px var(--sans); padding: 0 14px; margin: 0 -14px; border-radius: 22px; color: var(--text); flex: none; }
+.opt > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opt .v { font: 500 28px var(--mono); color: #a9a9a6; white-space: nowrap; }
 .opt.focus { background: var(--paper); color: var(--ink); }
 .opt.focus .v { color: #333; }
 .opt.off { color: var(--dim); }
 .opt.off .v { color: var(--dim); }
 
-/* dock */
-.dock { height: 88px; border-radius: 44px; background: rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; gap: 44px; font: 500 24px var(--sans); color: #141414; padding: 0 24px; box-sizing: border-box; white-space: nowrap; }
-.D .dock { position: absolute; left: 40px; right: 40px; top: 652px; }
-.D.night .dock { background: rgba(255,255,255,.12); color: var(--text); }
+/* dock: full bleed along the bottom, dark glass at 55%, no corners, no rim; gaps squeeze 44 -> 20 (script) */
+.dock { height: 104px; background: rgba(14,16,19,.55); display: flex; align-items: center; justify-content: center; gap: 44px; font: 500 30px var(--sans); color: var(--text); box-sizing: border-box; white-space: nowrap; }
+.D .dock { position: absolute; left: 0; right: 0; top: 664px; }
 .dock > span { display: inline-flex; align-items: center; gap: 14px; }
 
 /* placeholder video + art */
@@ -184,14 +196,14 @@ figure.f figcaption b { color: var(--page); font-weight: 600; }
 .vid.cool { background: linear-gradient(180deg, #0e2433 0%, #3b8fb3 62%, #0d1a22 62.2%); }
 .vid.cool .sun { background: radial-gradient(circle, #d9f3ff 0 55%, transparent 72%); }
 .vid.cool .h1 { background: #12303f; } .vid.cool .h2 { background: #173948; }
-.logo { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font: 600 18px var(--mono); flex: none; }
+.logo { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; font: 600 24px var(--mono); flex: none; }
 
 /* dot VU */
 .vu { position: absolute; display: flex; gap: 26px; align-items: flex-end; }
 .vu .col { display: grid; gap: 6px; justify-items: center; }
 .vu .col i { width: 14px; height: 14px; border-radius: 50%; background: var(--track); display: block; }
 .vu .col i.l { background: var(--text); }
-.vu .col span { font: 500 22px var(--mono); color: var(--label); margin-top: 8px; }
+.vu .col span { font: 500 28px var(--mono); color: var(--label); margin-top: 8px; }
 
 /* measurement annotations */
 .an { position: absolute; border: 2px dashed var(--anno); box-sizing: border-box; pointer-events: none; }
@@ -212,15 +224,15 @@ th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--pa
 tr:last-child td { border-bottom: 0; }
 th { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--page-2); background: var(--bench-2); }
 td code, .spec code { font: 500 13px var(--mono); color: var(--page); }
-td .key { transform: scale(.62); transform-origin: left center; margin: -12px -16px -12px 0; }
-td .key.wide { margin-right: -30px; }
+td .key { transform: scale(.6); transform-origin: left center; margin: -12px -18px -12px 0; }
+td .key.wide { margin-right: -34px; }
 
 .typeplate { display: grid; gap: 0; }
-.trow { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,.18); }
+.trow { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
 .trow:last-child { border-bottom: 0; }
 .trow .s { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: clip; }
-.trow .spec { color: #1d1d1d; }
-.trow .spec b { color: #000; }
+.trow .spec { color: var(--label); }
+.trow .spec b { color: var(--text); }
 @media (max-width: 720px) { .trow { grid-template-columns: 1fr; gap: 8px; } }
 .mini { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 @media (prefers-reduced-motion: no-preference) { .fade { animation: fade 3.2s ease-in-out infinite; } }
@@ -245,102 +257,68 @@ td .key.wide { margin-right: -30px; }
 
 <header class="top">
   <h1>DOT<i>.</i></h1>
-  <p class="lede">One look for three Brick paks: Kino plays video, Musicdisk plays tracker music, Tuner plays IPTV. Grey ground, black rounded cards, dot-matrix numbers, round keys. White shows where you are. One coloured dot shows what is happening. Every size on this page is in Brick pixels on the 1024×768 screen, and the C library uses the same numbers.</p>
-  <div class="apps"><span><b style="background:#ff6a2b"></b>Kino</span><span><b style="background:#ff3b30"></b>Musicdisk</span><span><b style="background:#34c759"></b>Tuner</span></div>
+  <p class="lede">One look for the Brick paks Kino (video), Musicdisk (tracker music), Tuner (IPTV) and Speed. An evening ground in each app's own colour, dark glass cards, dot-matrix numbers, round keys. White shows where you are. One coloured dot shows what is happening. Every size on this page is in Brick pixels on the 1024×768 screen (about 400 ppi), and the C library uses the same numbers.</p>
+  <div class="apps"><span><b style="background:#5cc9ff"></b>Kino</span><span><b style="background:#ff4f9a"></b>Musicdisk</span><span><b style="background:#2fc8d8"></b>Tuner</span><span><b style="background:#bf7bff"></b>Speed</span></div>
 </header>
 
 <!-- 1 -->
 <section aria-labelledby="s1">
   <div class="sh"><span class="n">1</span><h2 id="s1">Principles</h2><p>Six rules that decide most questions before they come up.</p></div>
   <div class="princ">
-    <div><strong>3.2 inches, 1024×768</strong><span>A palm-sized screen at arm's length. Nothing on screen is smaller than 22 px, and a screen holds one main thing.</span></div>
+    <div><strong>3.2 inches, 1024×768</strong><span>A palm-sized screen at about 400 ppi, at arm's length. Body text is 32 px (a 2 mm letter), nothing on screen is smaller than 24 px, and a screen holds one main thing.</span></div>
     <div><strong>White is where you are</strong><span>Focus and selection are always a paper fill with ink text. Nothing else on screen is paper-white.</span></div>
-    <div><strong>Colour is what is happening</strong><span>Each app has one accent. It appears only as a small dot for a state: playing, paused, resume, live, recording.</span></div>
+    <div><strong>Colour is what is happening</strong><span>Each app has one accent. It appears only as a small dot for a state: playing, paused, resume, live, recording. The app's evening ground is mood, not meaning.</span></div>
     <div><strong>Dots for numbers and titles</strong><span>Doto is for times, clocks, counts and screen titles. Names and sentences stay in Geist, labels in Geist Mono.</span></div>
-    <div><strong>Every screen shows its buttons</strong><span>The dock at the bottom lists what the buttons do on this screen, at most four hints, and only ones that work.</span></div>
-    <div><strong>Cards, not lines</strong><span>Group things in black cards on the grey ground. No borders, rules or boxes inside cards beyond spacing.</span></div>
+    <div><strong>Every screen shows its buttons</strong><span>The dock along the bottom lists what the buttons do on this screen, at most four hints, and only ones that work.</span></div>
+    <div><strong>Glass cards, not lines</strong><span>Group things in dark glass cards on the evening ground. No borders, rules or boxes inside cards beyond spacing: the only edges are the glass's own light rim and the chips' outline.</span></div>
   </div>
 </section>
 
 <!-- 2 -->
 <section aria-labelledby="s2">
-  <div class="sh"><span class="n">2</span><h2 id="s2">Colour</h2><p>Eleven neutrals shared by every app, plus one accent per app. The ground is a radial gradient from the top-left corner.</p></div>
+  <div class="sh"><span class="n">2</span><h2 id="s2">Colour</h2><p>Neutrals shared by every app; each app sets its own evening ground and accent (see Themes). The ground is a radial gradient from the light point, top-left by default, with a ±1.5 ordered dither against banding on the 6-bit panel.</p></div>
   <div class="sw">
-    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #a3a3a1, #6d6d6b 70%, #5c5c5a)"></div><figcaption><b>ground</b><code>#a3a3a1 → #6d6d6b → #5c5c5a</code><span>Screen background, radial from top-left</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#0f0f10"></div><figcaption><b>card</b><code>#0f0f10</code><span>Cards, list rows, key caps</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#1f1f20"></div><figcaption><b>raised</b><code>#1f1f20</code><span>Round buttons, icon wells on cards</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #5b5b5b, #424242 70%, #333333)"></div><figcaption><b>ground (default)</b><code>#5b5b5b → #424242 → #333333</code><span>Neutral grey, for an app that sets no theme</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:linear-gradient(rgba(14,16,19,.92),rgba(14,16,19,.92)),radial-gradient(120% 90% at 0% 0%, #385c8a, #23436c 70%, #183355)"></div><figcaption><b>glass</b><code>#0e1013 at 92%</code><span>Cards and list rows over the ground; the dock at 55%</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#0f0f10"></div><figcaption><b>card</b><code>#0f0f10</code><span>Pills (86%), key caps on the ground, focus gaps; solid under the glass over video</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#f2f2f0"></div><figcaption><b>on ground</b><code>#f2f2f0</code><span>Header crumb and count, straight on the ground</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#1f1f20"></div><figcaption><b>raised</b><code>#1f1f20</code><span>Round buttons, disabled key caps</span></figcaption></figure>
     <figure><div class="chip-c" style="background:#444444"></div><figcaption><b>track</b><code>#444444</code><span>Unlit dots in sliders and progress</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#333333"></div><figcaption><b>toggle off</b><code>#333333</code><span>Toggle track when off</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#3a3a3a"></div><figcaption><b>line</b><code>#3a3a3a</code><span>Chip outline, the only outline</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#333333"></div><figcaption><b>toggle off</b><code>#333333</code><span>Token kept; an off toggle is now white at 18%</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#3a3a3a"></div><figcaption><b>line</b><code>#3a3a3a</code><span>Token kept; chips now use a white outline</span></figcaption></figure>
     <figure><div class="chip-c" style="background:#ededeb"></div><figcaption><b>paper</b><code>#ededeb</code><span>Focus, selection, primary button</span></figcaption></figure>
     <figure><div class="chip-c" style="background:#111111"></div><figcaption><b>ink</b><code>#111111</code><span>Text on paper</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#f2f2f0"></div><figcaption><b>text</b><code>#f2f2f0</code><span>Text on cards, lit dots</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#8d8d8a"></div><figcaption><b>label</b><code>#8d8d8a</code><span>Labels and values on cards</span></figcaption></figure>
-    <figure><div class="chip-c" style="background:#5a5a58"></div><figcaption><b>dim</b><code>#5a5a58</code><span>Disabled text and icons</span></figcaption></figure>
-  </div>
-
-  <div class="sub">
-    <h3>App schemes: same ground and cards, one accent each</h3>
-    <div class="frames">
-      <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D">
-        <div class="crumb">KINO</div><div class="count">ACCENT</div>
-        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
-        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:#ff6a2b"></div>
-        <div class="abs t-m" style="left:300px;top:150px">#FF6A2B</div>
-        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; RESUME · PLAYING · PAUSED</div>
-        <div class="abs lab" style="left:300px;top:270px">FOLLOWS THE VIDEO'S COLOUR</div>
-        <div class="abs" style="left:40px;top:420px;display:flex;gap:16px">
-          <span style="width:150px;height:150px;border-radius:30px;background:#ff6a2b"></span><span style="width:150px;height:150px;border-radius:30px;background:#3b8fb3"></span><span style="width:150px;height:150px;border-radius:30px;background:#d6b33c"></span><span style="width:150px;height:150px;border-radius:30px;background:#c04fa0"></span>
-        </div>
-        <div class="abs lab" style="left:40px;top:604px;color:#161616">SAMPLED FROM THE FRAME, CLAMPED TO A READABLE BRIGHTNESS</div>
-      </div></div><figcaption><b>Kino</b> · default #ff6a2b. While a video plays, the dot takes the dominant colour of the picture.</figcaption></figure>
-
-      <figure class="f" style="--acc:#ff3b30"><div class="frame"><div class="screen D">
-        <div class="crumb">MUSICDISK</div><div class="count">ACCENT</div>
-        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
-        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:#ff3b30"></div>
-        <div class="abs t-m" style="left:300px;top:150px">#FF3B30</div>
-        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; PLAYING · DOWNLOADING</div>
-        <div class="abs lab" style="left:300px;top:270px">FIXED, LIKE A RECORD LIGHT</div>
-      </div></div><figcaption><b>Musicdisk</b> · #ff3b30. A red record-light dot for the song that is playing.</figcaption></figure>
-
-      <figure class="f" style="--acc:#34c759"><div class="frame"><div class="screen D">
-        <div class="crumb">TUNER</div><div class="count">ACCENT</div>
-        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
-        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:#34c759"></div>
-        <div class="abs t-m" style="left:300px;top:150px">#34C759</div>
-        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; LIVE · ON NOW</div>
-        <div class="abs lab" style="left:300px;top:270px">FIXED, LIKE A SIGNAL LIGHT</div>
-      </div></div><figcaption><b>Tuner</b> · #34c759. A green signal dot for the channel that is live.</figcaption></figure>
-    </div>
+    <figure><div class="chip-c" style="background:#f2f2f0"></div><figcaption><b>text</b><code>#f2f2f0</code><span>Text on glass, lit dots, dock hints</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#9d9d9a"></div><figcaption><b>label</b><code>#9d9d9a</code><span>Labels and values on glass</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:#7a7a77"></div><figcaption><b>dim</b><code>#7a7a77</code><span>Disabled text and icons, still readable</span></figcaption></figure>
   </div>
 
   <div class="sub">
     <h3>Night scheme: over video</h3>
     <div class="frames two">
-      <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D night">
+      <figure class="f th-kino"><div class="frame"><div class="screen D night">
         <div class="vid" style="inset:0"><i class="sun"></i><i class="h1"></i><i class="h2"></i><i class="water"></i></div>
         <div class="abs" style="inset:0;background:rgba(0,0,0,.7)"></div>
         <div class="abs t-m" style="left:40px;top:28px">OPTIONS</div>
         <div class="abs lab" style="right:40px;top:40px;color:#cfcfcc">B CLOSE</div>
-        <div class="card pad" style="left:40px;top:96px;width:464px;height:254px"><span class="hd">Subtitles</span>
+        <div class="card pad" style="left:40px;top:96px;width:464px;height:302px"><span class="hd">Subtitles</span>
           <div class="opt focus"><span>Show</span><span class="tg on"></span></div>
           <div class="opt"><span>Track</span><span class="v">ENGLISH</span></div>
           <div class="opt"><span>Size</span><span class="sl"><b style="width:50%"></b></span></div></div>
-        <div class="card pad" style="left:520px;top:96px;width:464px;height:198px"><span class="hd">Audio</span>
+        <div class="card pad" style="left:520px;top:96px;width:464px;height:230px"><span class="hd">Audio</span>
           <div class="opt"><span>Track</span><span class="v">2 · ENG 5.1</span></div>
           <div class="opt"><span>Prefer</span><span class="v">ENG, NOR</span></div></div>
         <div class="dock"><span><span class="key p">A</span>Change</span><span><span class="key">B</span>Close</span><span><span class="key wide">L1 R1</span>Section</span></div>
-      </div></div><figcaption><b>Night.</b> Ground becomes the paused picture under a 70% black scrim (#000 at .7). Cards, paper and text stay the same; the header text moves from #161616 to label grey.</figcaption></figure>
+      </div></div><figcaption><b>Night.</b> Ground becomes the paused picture under a 70% black scrim (#000 at .7). Cards are drawn solid (#0f0f10) under the glass so nothing of the video shows through; paper and text stay the same. The header text moves from on-ground #f2f2f0 to label grey. The dock is the same dark glass with light hints.</figcaption></figure>
       <div class="sub" style="align-content:start">
         <div class="tbl"><table>
           <thead><tr><th>Where</th><th>Ground</th><th>Header text</th></tr></thead>
           <tbody>
-            <tr><td>Browse, lists, settings</td><td><code>ground</code> gradient</td><td><code>#161616</code></td></tr>
-            <tr><td>Over a video or picture</td><td>picture + <code>#000</code> at 70%</td><td><code>label #8d8d8a</code></td></tr>
+            <tr><td>Browse, lists, settings</td><td>the app's <code>ground</code> gradient</td><td><code>on ground #f2f2f0</code></td></tr>
+            <tr><td>Over a video or picture</td><td>picture + <code>#000</code> at 70%</td><td><code>label #9d9d9a</code></td></tr>
             <tr><td>Overlay while playing</td><td>the picture itself</td><td>pills, not header text</td></tr>
           </tbody></table></div>
-        <p class="spec">Contrast (WCAG): <b>text</b> on <b>card</b> 17.1:1, <b>label</b> on <b>card</b> 5.8:1, <b>ink</b> on <b>paper</b> 16.1:1. <b>#161616</b> on the ground is 7.2:1 at the light top-left but only about 3.5:1 where the ground darkens, so header text stays in the top band and nothing else is written straight on the ground. Never put <b>label</b> on the ground.</p>
+        <p class="spec">Contrast (WCAG): <b>text</b> on <b>glass</b> 16.2:1, <b>label</b> on <b>glass</b> 6.7:1, <b>dim</b> on <b>glass</b> about 4.2–4.5:1, <b>ink</b> on <b>paper</b> 16.1:1. <b>on ground</b> on the ground is about 6:1 at the light point (5.9 on Tuner's teal, 6.4 on Musicdisk's rose) and 11:1 or more where it darkens, in every theme. Accent dots on glass: 6.0:1 (Musicdisk) to 9.9:1 (Kino).</p>
       </div>
     </div>
   </div>
@@ -348,31 +326,135 @@ td .key.wide { margin-right: -30px; }
 
 <!-- 3 -->
 <section aria-labelledby="s3">
-  <div class="sh"><span class="n">3</span><h2 id="s3">Type</h2><p>Nine styles, shown at true Brick size. Doto 900 for numbers and titles, Geist for names and sentences, Geist Mono for labels and values. Minimum 22 px.</p></div>
-  <div class="plate dark typeplate">
-    <div class="trow"><div class="s t-xl" style="font:900 92px/1 var(--display)">41:12</div><div class="spec"><b>Display XL</b><br>Doto 900 · 92 px · lh 1<br>Clock, playback time</div></div>
-    <div class="trow"><div class="s" style="font:900 70px/1 var(--display)">1:52:08</div><div class="spec"><b>Display L</b><br>Doto 900 · 70 px · lh 1<br>Time on cards, big counts</div></div>
-    <div class="trow"><div class="s" style="font:900 48px/1 var(--display)">OPTIONS</div><div class="spec"><b>Display M</b><br>Doto 900 · 48 px · lh 1<br>Screen titles, uppercase</div></div>
-    <div class="trow"><div class="s" style="font:600 32px/1.15 var(--sans)">The Long Harbour</div><div class="spec"><b>Title</b><br>Geist 600 · 32 px · lh 1.15<br>Name on a detail card</div></div>
-    <div class="trow"><div class="s" style="font:500 25px/1.2 var(--sans)">Northern Lights Timelapse</div><div class="spec"><b>Body</b><br>Geist 500 · 25 px · lh 1.2<br>List rows, dock hints</div></div>
-    <div class="trow"><div class="s" style="font:400 24px/1.3 var(--sans)">Next: Weather and news at 21:00</div><div class="spec"><b>Body S</b><br>Geist 400 · 24 px · lh 1.3<br>Second lines, descriptions</div></div>
-    <div class="trow"><div class="s lab">2021 · 1080P · MKV</div><div class="spec"><b>Label</b><br>Geist Mono 500 · 22 px · tracking .14em · UPPER<br>Card labels, crumbs, counts</div></div>
-    <div class="trow"><div class="s hd" style="margin:0">Subtitles</div><div class="spec"><b>Card heading</b><br>Geist Mono 500 · 26 px · tracking .14em · UPPER<br>Top of a padded card, 20 px down to its content</div></div>
-    <div class="trow"><div class="s val">12:40 &nbsp; 82% &nbsp; 14</div><div class="spec"><b>Value</b><br>Geist Mono 500 · 22 px · tracking 0<br>Numbers at the right of rows</div></div>
+  <div class="sh"><span class="n">3</span><h2 id="s3">Themes</h2><p>Each app sets its look once with <code style="font:500 13px var(--mono)">dot_set_theme(d, &amp;DOT_THEME_*)</code>: an evening ground (three stops at the same lightness in every app) and an accent. The accents sit off the status red and green, so "playing" never reads as an error and "live" never as "connected".</p></div>
+  <div class="sw th">
+    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #385c8a, #23436c 70%, #183355)"><i style="background:#5cc9ff"></i></div><figcaption><b>Kino · midnight blue</b><code>#385c8a → #23436c → #183355</code><span>Accent <code>#5cc9ff</code> sky blue; on the cards it follows the video's colour while playing</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #80455d, #632f44 70%, #4e2235)"><i style="background:#ff4f9a"></i></div><figcaption><b>Musicdisk · rose</b><code>#80455d → #632f44 → #4e2235</code><span>Accent <code>#ff4f9a</code> magenta</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #1e6573, #0f4b58 70%, #063b46)"><i style="background:#2fc8d8"></i></div><figcaption><b>Tuner · teal</b><code>#1e6573 → #0f4b58 → #063b46</code><span>Accent <code>#2fc8d8</code> cyan</span></figcaption></figure>
+    <figure><div class="chip-c" style="background:radial-gradient(120% 90% at 0% 0%, #5a5287, #423a6a 70%, #332c54)"><i style="background:#bf7bff"></i></div><figcaption><b>Speed · violet</b><code>#5a5287 → #423a6a → #332c54</code><span>Accent <code>#bf7bff</code> violet</span></figcaption></figure>
   </div>
-  <p class="spec">On the Brick the fonts ship as static files: <b>Doto-Black.ttf</b> (900), <b>Geist-Regular / Medium / SemiBold.ttf</b>, <b>Geist Mono-Medium.ttf</b>. All SIL OFL. Doto's own colon looks like a cross on the Brick, so times draw theirs as two round dots of the digits' size (dot_time). Text that does not fit is cut with "…" at the end, or at the start for paths.</p>
+
+  <div class="sub">
+    <h3>Same glass and type, each app's ground and accent</h3>
+    <div class="frames">
+      <figure class="f th-kino"><div class="frame"><div class="screen D">
+        <div class="crumb">KINO</div><div class="count">THEME</div>
+        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
+        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:var(--acc)"></div>
+        <div class="abs t-m" style="left:300px;top:150px">#5CC9FF</div>
+        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; RESUME · PLAYING · PAUSED</div>
+        <div class="abs lab" style="left:300px;top:270px">FOLLOWS THE VIDEO'S COLOUR</div>
+        <div class="abs" style="left:40px;top:420px;display:flex;gap:16px">
+          <span style="width:150px;height:150px;border-radius:30px;background:#5cc9ff"></span><span style="width:150px;height:150px;border-radius:30px;background:#ff8a4c"></span><span style="width:150px;height:150px;border-radius:30px;background:#d6b33c"></span><span style="width:150px;height:150px;border-radius:30px;background:#c04fa0"></span>
+        </div>
+        <div class="abs lab" style="left:40px;top:600px;color:var(--on-ground)">SAMPLED FROM THE FRAME, CLAMPED</div>
+      </div></div><figcaption><b>Kino</b> · midnight blue, accent #5cc9ff. While a video plays, the dot on the cards takes the dominant colour of the picture.</figcaption></figure>
+
+      <figure class="f th-musicdisk"><div class="frame"><div class="screen D">
+        <div class="crumb">MUSICDISK</div><div class="count">THEME</div>
+        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
+        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:var(--acc)"></div>
+        <div class="abs t-m" style="left:300px;top:150px">#FF4F9A</div>
+        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; PLAYING · DOWNLOADING</div>
+        <div class="abs lab" style="left:300px;top:270px">OFF THE STATUS RED</div>
+        <div class="lrow" style="left:40px;top:420px;width:944px"><span class="ic"><svg class="ico"><use href="#i-note"/></svg></span><span class="nm">Space Debris</span><span class="mt"><span class="adot"></span>5:05</span></div>
+        <div class="lrow sel" style="left:40px;top:528px;width:944px"><span class="ic"><svg class="ico"><use href="#i-note"/></svg></span><span class="nm">Elysium</span><span class="mt">4:12</span></div>
+      </div></div><figcaption><b>Musicdisk</b> · rose, accent #ff4f9a. A magenta dot for the song that is playing.</figcaption></figure>
+
+      <figure class="f th-tuner"><div class="frame"><div class="screen D">
+        <div class="crumb">TUNER</div><div class="count">THEME</div>
+        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
+        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:var(--acc)"></div>
+        <div class="abs t-m" style="left:300px;top:150px">#2FC8D8</div>
+        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; LIVE · ON NOW</div>
+        <div class="abs lab" style="left:300px;top:270px">OFF THE STATUS GREEN</div>
+        <div class="lrow" style="left:40px;top:420px;width:944px"><span class="ic"><svg class="ico"><use href="#i-tv"/></svg></span><span class="nm">Channel Two</span><span class="mt"><span class="adot"></span>102</span></div>
+        <div class="lrow sel" style="left:40px;top:528px;width:944px"><span class="ic"><svg class="ico"><use href="#i-tv"/></svg></span><span class="nm">Nature Plus</span><span class="mt">103</span></div>
+      </div></div><figcaption><b>Tuner</b> · teal, accent #2fc8d8. A cyan dot for the channel that is live.</figcaption></figure>
+
+      <figure class="f th-speed"><div class="frame"><div class="screen D">
+        <div class="crumb">SPEED</div><div class="count">THEME</div>
+        <div class="card" style="left:40px;top:96px;width:944px;height:300px"></div>
+        <div class="abs" style="left:80px;top:136px;width:180px;height:180px;border-radius:50%;background:var(--acc)"></div>
+        <div class="abs t-m" style="left:300px;top:150px">#BF7BFF</div>
+        <div class="abs lab" style="left:300px;top:226px;color:var(--text)"><span class="adot"></span>&nbsp; A STATE DOT</div>
+        <div class="abs lab" style="left:300px;top:270px">VIOLET</div>
+        <div class="lrow" style="left:40px;top:420px;width:944px"><span class="nm">A glass row</span><span class="mt"><span class="adot"></span>12</span></div>
+        <div class="lrow sel" style="left:40px;top:528px;width:944px"><span class="nm">Where you are</span><span class="mt">3</span></div>
+      </div></div><figcaption><b>Speed</b> · violet, accent #bf7bff.</figcaption></figure>
+    </div>
+  </div>
 </section>
 
 <!-- 4 -->
 <section aria-labelledby="s4">
-  <div class="sh"><span class="n">4</span><h2 id="s4">Buttons and controls</h2><p>Every control at true size. Focus is always paper. Disabled drops to <code style="font:500 13px var(--mono)">dim</code> and keeps its shape.</p></div>
+  <div class="sh"><span class="n">4</span><h2 id="s4">Glass</h2><p>Cards, list rows and the dock are charcoal glass over the ground: the app's colour comes through a little, so every screen feels like the same evening. It is "glass, but not glass": no blur, just a translucent body, a soft sheen and a light rim.</p></div>
+  <div class="plate th-kino"><div class="row-of" style="align-items:flex-start">
+    <div class="card pad" style="width:464px"><span class="hd">Subtitles</span>
+      <div class="opt"><span>Show</span><span class="tg"></span></div>
+      <div class="opt"><span>Track</span><span class="v">ENGLISH</span></div>
+      <div class="chips"><span class="chip on">Small</span><span class="chip">Medium</span><span class="chip">Large</span></div>
+      <div class="mini" style="margin-top:8px;align-items:center;font:500 30px var(--sans)"><span class="key p">A</span><span class="key g">B</span><span class="key wide g">L1 R1</span></div>
+    </div>
+    <div class="cell"><div style="display:grid;gap:12px">
+      <div class="lrow"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">Series</span><span class="mt">14</span></div>
+      <div class="lrow sel"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">The Long Harbour</span><span class="mt">37%</span></div>
+    </div><span class="cap">Rows: the same glass, 1 px rim, no sheen</span></div>
+  </div></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Part</th><th>Body</th><th>Light</th></tr></thead>
+    <tbody>
+      <tr><td>Card (<code>dot_card</code>, <code>dot_panel</code>)</td><td><code>glass #0e1013</code> at 92% (235)</td><td>Sheen white 7% at the top, gone by 45% of the height. Rim 1.5 px, white 22% at the top to 8% at the bottom. Shadow 0 10 24 rgba(0,0,0,.28), only outside the card.</td></tr>
+      <tr><td>List row (<code>dot_row</code>)</td><td><code>#0e1013</code> at 92%</td><td>Rim 1 px, white 13%. Selected: paper, no rim.</td></tr>
+      <tr><td>Dock</td><td><code>#0e1013</code> at 55%</td><td>None: full bleed, no corners, no rim.</td></tr>
+      <tr><td>Over video (Night)</td><td>solid <code>#0f0f10</code> under the card's glass</td><td>Same sheen and rim.</td></tr>
+      <tr><td>Things on glass</td><td colspan="2">Icon wells white 10% · off toggles white 18% · key caps white 16% with light text (the primary key stays paper) · chip outline 2 px white 25%, disabled 12%.</td></tr>
+      <tr><td>Pictures</td><td colspan="2">Rounded image corners are painted in the colour behind them: <code>dot_corners(…, DOT_BG_GROUND)</code> on the ground, <code>DOT_BG_GLASS</code> on a glass card (the card over the ground, no sheen). When a picture is drawn behind instead of the ground, <code>dot_set_backdrop(d, fn)</code> gives its colour at a point.</td></tr>
+    </tbody></table></div>
+</section>
 
-  <div class="sub"><h3>Key caps · 58 px round, wide caps 58 px high pill</h3>
+<!-- 5 -->
+<section aria-labelledby="s5">
+  <div class="sh"><span class="n">5</span><h2 id="s5">Type</h2><p>Eight styles plus the card heading, shown at true Brick size on glass. Doto 900 for numbers and titles, Geist for names and sentences, Geist Mono for labels and values. Body text is 32 px; minimum 24 px.</p></div>
+  <div class="plate dark typeplate th-kino">
+    <div class="trow"><div class="s" style="font:900 92px/1 var(--display)">41:12</div><div class="spec"><b>Display XL</b><br>Doto 900 · 92 px · lh 1<br>Clock, playback time</div></div>
+    <div class="trow"><div class="s" style="font:900 70px/1 var(--display)">1:52:08</div><div class="spec"><b>Display L</b><br>Doto 900 · 70 px · lh 1<br>Time on cards, big counts</div></div>
+    <div class="trow"><div class="s" style="font:900 52px/1 var(--display)">OPTIONS</div><div class="spec"><b>Display M</b><br>Doto 900 · 52 px · lh 1<br>Screen titles, uppercase</div></div>
+    <div class="trow"><div class="s" style="font:600 40px/1.15 var(--sans)">The Long Harbour</div><div class="spec"><b>Title</b><br>Geist 600 · 40 px · lh 1.15<br>Name on a detail card</div></div>
+    <div class="trow"><div class="s" style="font:500 32px/1.2 var(--sans)">Northern Lights Timelapse</div><div class="spec"><b>Body</b><br>Geist 500 · 32 px · lh 1.2<br>List rows</div></div>
+    <div class="trow"><div class="s" style="font:500 28px/1.3 var(--sans)">Next: Weather and news at 21:00</div><div class="spec"><b>Body S</b><br>Geist 500 · 28 px · lh 1.3<br>Descriptions</div></div>
+    <div class="trow"><div class="s lab">2021 · 1080P · MKV</div><div class="spec"><b>Label</b><br>Geist Mono 500 · 28 px · tracking .08em · UPPER<br>Card labels, crumbs, counts</div></div>
+    <div class="trow"><div class="s hd" style="margin:0">Subtitles</div><div class="spec"><b>Card heading</b><br>Geist Mono 500 · 26 px · tracking .1em · UPPER<br>Top of a padded card, 20 px down to its content</div></div>
+    <div class="trow"><div class="s val">12:40 &nbsp; 82% &nbsp; 14</div><div class="spec"><b>Value</b><br>Geist Mono 500 · 28 px · tracking 0<br>Numbers at the right of rows</div></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Inside components</th><th>Font</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>DOT_UI</code></td><td>Geist 500 · 30 px · lh 1.2</td><td>Dock hints, pills, option rows</td></tr>
+      <tr><td><code>DOT_CHIP_T</code></td><td>Geist 500 · 28 px · lh 1.2</td><td>Chips</td></tr>
+      <tr><td><code>DOT_SMALL</code></td><td>Geist 500 · 26 px · lh 1.2</td><td>Second line of a row</td></tr>
+      <tr><td><code>DOT_KEY_T</code></td><td>Geist Mono 500 · 26 px</td><td>Key caps</td></tr>
+      <tr><td><code>DOT_KEY_WIDE</code></td><td>Geist Mono 500 · 24 px · tracking .04em</td><td>Wide key caps</td></tr>
+      <tr><td><code>DOT_PILL_MONO</code></td><td>Geist Mono 500 · 24 px · tracking .08em · UPPER</td><td>Fact pills</td></tr>
+      <tr><td><code>DOT_PANEL_T</code></td><td>Geist Mono 500 · 26 px · tracking .1em · UPPER</td><td>Card headings</td></tr>
+      <tr><td><code>DOT_VALUE_L</code></td><td>Geist Mono 500 · 32 px</td><td>Columns of numbers and notes (Musicdisk's pattern)</td></tr>
+    </tbody></table></div>
+  <p class="spec">On the Brick the fonts ship as static files: <b>Doto-Black.ttf</b> (900), <b>Geist-Regular / Medium / SemiBold.ttf</b>, <b>Geist Mono-Medium.ttf</b>. All SIL OFL. Doto's own colon looks like a cross on the Brick, so times draw theirs as two round dots of the digits' size (dot_time). Text that does not fit is cut with "…" at the end, or at the start for paths.</p>
+</section>
+
+<!-- 6 -->
+<section aria-labelledby="s6">
+  <div class="sh"><span class="n">6</span><h2 id="s6">Buttons and controls</h2><p>Every control at true size. Focus is always paper. Disabled drops to <code style="font:500 13px var(--mono)">dim</code> and keeps its shape.</p></div>
+
+  <div class="sub"><h3>Key caps · 62 px round, wide caps 62 px high pill</h3>
     <div class="plate"><div class="row-of">
-      <div class="cell"><div class="mini"><span class="key">A</span><span class="key">B</span><span class="key">X</span><span class="key">Y</span></div><span class="cap">Dark · normal</span></div>
+      <div class="cell"><div class="mini"><span class="key">A</span><span class="key">B</span><span class="key">X</span><span class="key">Y</span></div><span class="cap">Dark · on the ground</span></div>
       <div class="cell"><div class="mini"><span class="key p">A</span><span class="key p">B</span><span class="key p">X</span><span class="key p">Y</span></div><span class="cap">Paper · the main action</span></div>
       <div class="cell"><div class="mini"><span class="key wide">MENU</span><span class="key wide">SELECT</span><span class="key wide">START</span><span class="key wide">L1</span><span class="key wide">R1</span></div><span class="cap">Wide · padding 0 20</span></div>
       <div class="cell"><div class="mini"><span class="key off">X</span><span class="key wide off">SELECT</span></div><span class="cap">Disabled</span></div>
+    </div></div>
+    <div class="plate dark"><div class="row-of">
+      <div class="cell"><div class="mini"><span class="key p">A</span><span class="key g">B</span><span class="key g">Y</span><span class="key wide g">L1 R1</span></div><span class="cap">On dark glass (dock, cards) · white 16%, light text; primary stays paper</span></div>
     </div></div>
   </div>
 
@@ -385,33 +467,33 @@ td .key.wide { margin-right: -30px; }
     </div></div>
   </div>
 
-  <div class="sub"><h3>Pill and toast · 56 px high, full radius, card at 86%</h3>
+  <div class="sub"><h3>Pill and toast · 60 px high, full radius, card at 86%</h3>
     <div class="plate"><div class="row-of">
       <div class="cell"><span class="pill"><span class="adot"></span>The Long Harbour</span><span class="cap">Title pill with state dot</span></div>
       <div class="cell"><span class="pill mono">1080P · 5.1</span><span class="cap">Mono pill for facts</span></div>
-      <div class="cell"><span class="pill fade"><span class="adot"></span>Saved where you stopped</span><span class="cap">Toast · bottom centre, 2.6 s</span></div>
+      <div class="cell"><span class="pill fade"><span class="adot"></span>Saved where you stopped</span><span class="cap">Toast · bottom centre at y 572, 2.6 s</span></div>
     </div></div>
   </div>
 
-  <div class="sub"><h3>Chips · 48 px, radius 24, 2 px line</h3>
+  <div class="sub"><h3>Chips · 56 px, radius 24, 2 px light outline (white 25%)</h3>
     <div class="plate dark"><div class="row-of">
       <div class="cell"><div class="chips"><span class="chip on">Original</span><span class="chip">4:3</span><span class="chip">16:9</span></div><span class="cap">On · off</span></div>
       <div class="cell"><div class="chips"><span class="chip on">Original</span><span class="chip focus">Zoom</span></div><span class="cap">Focused (not yet chosen)</span></div>
-      <div class="cell"><div class="chips"><span class="chip off">Stretch</span></div><span class="cap">Disabled</span></div>
+      <div class="cell"><div class="chips"><span class="chip off">Stretch</span></div><span class="cap">Disabled · outline white 12%</span></div>
     </div></div>
   </div>
 
   <div class="sub"><h3>Toggle · 64×36 · dot slider · 170 wide, 17 px pitch · dot progress · 18 px pitch, 24 px knob</h3>
     <div class="plate dark"><div class="row-of" style="align-items:flex-start">
-      <div class="cell"><div class="mini" style="align-items:center"><span class="tg"></span><span class="tg on"></span></div><span class="cap">Off · on</span></div>
-      <div class="cell"><div class="mini" style="align-items:center;background:var(--paper);padding:10px 14px;border-radius:22px"><span class="tg on inv"></span></div><span class="cap">On, on a focused row</span></div>
+      <div class="cell"><div class="mini" style="align-items:center"><span class="tg"></span><span class="tg on"></span></div><span class="cap">Off (white 18%) · on</span></div>
+      <div class="cell"><div class="mini" style="align-items:center;background:var(--paper);padding:14px 14px;border-radius:22px"><span class="tg fo"></span><span class="tg on inv"></span></div><span class="cap">Off · on, on a focused row</span></div>
       <div class="cell"><span class="sl"><b style="width:52%"></b></span><span class="cap">Slider · lit dots = text</span></div>
       <div class="cell" style="width:420px"><span class="dots" style="width:400px"><b style="width:37%"></b><i style="left:37%"></i></span><span class="cap">Progress · knob while the overlay shows</span></div>
       <div class="cell" style="width:420px"><span class="dots" style="width:400px"><b style="width:62%"></b><i class="focus" style="left:62%"></i></span><span class="cap">Focused (scrubbing) · ring on the knob, A jumps there</span></div>
     </div></div>
   </div>
 
-  <div class="sub"><h3>List rows · 460×78 (or full width 944), radius 26, icon well 46</h3>
+  <div class="sub"><h3>List rows · 460×96 (or full width 944), radius 26, glass, icon well 56 (icon 26)</h3>
     <div class="plate"><div class="row-of" style="align-items:flex-start">
       <div class="cell"><div style="display:grid;gap:12px">
         <div class="lrow"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">Series</span><span class="mt">14</span></div>
@@ -420,41 +502,42 @@ td .key.wide { margin-right: -30px; }
         <div class="lrow"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Lecture 07 · Signals</span><span class="mt">58:02</span></div>
         <div class="lrow off"><span class="ic"><svg class="ico"><use href="#i-sd"/></svg></span><span class="nm">NAS (offline)</span><span class="mt">—</span></div>
       </div><span class="cap">Folder count · selected · seen · length · disabled</span></div>
-      <div class="cell"><div style="display:grid;gap:12px">
-        <div class="lrow sel"><span class="ic" style="background:var(--ink)"><span class="adot" style="--acc:#34c759"></span></span><span class="two"><span class="nm">NRK1</span><small>Dagsrevyen · 19:00–19:45</small></span><span class="mt">101</span></div>
+      <div class="cell th-tuner"><div style="display:grid;gap:12px">
+        <div class="lrow sel"><span class="ic" style="background:var(--ink)"><span class="adot"></span></span><span class="two"><span class="nm">NRK1</span><small>Dagsrevyen · 19:00–19:45</small></span><span class="mt">101</span></div>
         <div class="lrow"><span class="ic"><svg class="ico"><use href="#i-note"/></svg></span><span class="two"><span class="nm">Space Debris</span><small>Captain · MOD · 4 ch</small></span><span class="mt">5:05</span></div>
-      </div><span class="cap">Two-line row · same 78 px height</span></div>
+      </div><span class="cap">Two-line row · same 96 px height</span></div>
     </div></div>
+    <p class="spec">Rows stack at a 108 pitch (96 + 12). Unfocused: glass with a 1 px light rim, icon well white 10%. Name in Body 32, second line in Geist 500 26 (label), value in Geist Mono 28 at the right.</p>
   </div>
 
-  <div class="sub"><h3>Option rows · 48 px at a 56 pitch, inside a card under a card heading</h3>
+  <div class="sub"><h3>Option rows · 64 px at a 72 pitch, inside a card under a card heading</h3>
     <div class="plate"><div class="card pad" style="width:464px">
       <span class="hd">Picture</span>
       <div class="opt"><span>Brightness</span><span class="sl"><b style="width:50%"></b></span></div>
       <div class="opt focus"><span>Contrast</span><span class="sl"><b style="width:60%"></b></span></div>
       <div class="opt"><span>Deinterlace</span><span class="v">AUTO</span></div>
-      <div class="opt"><span>Brick lights follow video</span><span class="tg"></span></div>
+      <div class="opt"><span>Lights follow video</span><span class="tg"></span></div>
       <div class="opt off"><span>Deband</span><span class="v">N/A</span></div>
     </div></div>
-    <p class="spec">Card heading (Geist Mono 26, uppercase), then 20 px to the first row; rows every 56 px. A card is as tall as its content: 24 + 26 + 20 + content + 24. Rows: label left in Geist 500 24, control or value right; a label is cut with "…" only where the value starts. The focused row gets paper with a 22 px radius that bleeds 14 px past the card padding. Left/right change the value, A toggles.</p>
+    <p class="spec">Card heading (Geist Mono 26, uppercase), then 20 px to the first row; rows every 72 px. A card is as tall as its content: 24 + 26 + 20 + content + 24. Rows: label left in Geist 500 30, control or value (Geist Mono 28) right; a label is cut with "…" only where the value starts. The focused row gets paper with a 22 px radius that bleeds 14 px past the card padding. Left/right change the value, A toggles.</p>
   </div>
 
-  <div class="sub"><h3>Card · radius 30, padding 24–30, shadow 0 10 24 rgba(0,0,0,.28)</h3>
+  <div class="sub"><h3>Card · glass, radius 30, padding 24–30, shadow 0 10 24 rgba(0,0,0,.28) outside only</h3>
     <div class="plate"><div class="row-of" style="align-items:flex-start">
       <div class="card pad" style="width:320px;height:200px"><span class="lab"><span class="adot"></span>&nbsp; RESUME</span><span style="font:900 70px/1 var(--display)">41:12</span><span class="lab">/ 1:52:08</span></div>
-      <div class="card pad" style="width:320px;height:200px;background:var(--paper);color:var(--ink)"><span class="lab" style="color:#555">FOCUSED CARD</span><span style="font:600 32px/1.15 var(--sans)">Whole card is the choice</span></div>
+      <div class="card pad paper" style="width:320px;height:200px"><span class="lab" style="color:#555">FOCUSED CARD</span><span style="font:600 40px/1.15 var(--sans)">Whole card is the choice</span></div>
     </div></div>
   </div>
 
-  <div class="sub"><h3>Dock · 944×88 at y 652, radius 44, white at 16%</h3>
-    <div class="plate"><div class="dock" style="width:944px"><span><span class="key p">A</span>Play</span><span><span class="key">B</span>Back</span><span><span class="key">Y</span>Options</span><span><span class="key wide">MENU</span>Quit</span></div></div>
-    <p class="spec">Up to four hints, gap 44, centred. The main action's key is paper. Hints that do nothing on this screen are left out, never greyed.</p>
+  <div class="sub"><h3>Dock · full bleed 1024×104 at y 664, glass at 55%, no corners, no rim</h3>
+    <div class="plate" style="padding:32px 0"><div class="dock" style="width:1024px"><span><span class="key p">A</span>Play</span><span><span class="key">B</span>Back</span><span><span class="key">Y</span>Options</span><span><span class="key wide">MENU</span>Quit</span></div></div>
+    <p class="spec">From y 664 to the bottom edge, edge to edge. Up to four hints, centred, gap 44; when four do not fit in 896 px (1024 − 2 × 40 − 48) the gaps shrink, down to 20. Hint text is always light (#f2f2f0), on the ground and over video. Keys are white at 16% on the glass; the main action's key is paper. Hints that do nothing on this screen are left out, never greyed.</p>
   </div>
 </section>
 
-<!-- 5 -->
-<section aria-labelledby="s5">
-  <div class="sh"><span class="n">5</span><h2 id="s5">Buttons on the Brick</h2><p>The same button means the same thing in all three apps.</p></div>
+<!-- 7 -->
+<section aria-labelledby="s7">
+  <div class="sh"><span class="n">7</span><h2 id="s7">Buttons on the Brick</h2><p>The same button means the same thing in all three apps.</p></div>
   <div class="tbl"><table>
     <thead><tr><th>Button</th><th>Means</th><th>Kino</th><th>Musicdisk</th><th>Tuner</th></tr></thead>
     <tbody>
@@ -473,129 +556,127 @@ td .key.wide { margin-right: -30px; }
   </table></div>
 </section>
 
-<!-- 6 -->
-<section aria-labelledby="s6">
-  <div class="sh"><span class="n">6</span><h2 id="s6">Layout</h2><p>One grid for every screen: 40 px margin, a header band, a content area, a dock. Four templates cover all three apps. Blue marks are measurements and never appear on the device.</p></div>
-  <div class="tool"><button class="tbtn" id="annos" aria-pressed="true" type="button">Measurements shown</button><span class="spec">Spacing steps: <b>8 · 16 · 24 · 32 · 40</b>. Gap between cards 16. Overlay fades in 200 ms, hides after 3 s of play.</span></div>
+<!-- 8 -->
+<section aria-labelledby="s8">
+  <div class="sh"><span class="n">8</span><h2 id="s8">Layout</h2><p>One grid for every screen: 40 px margin, a header band, a content area, a full-bleed dock. Four templates cover all three apps. Blue marks are measurements and never appear on the device.</p></div>
+  <div class="tool"><button class="tbtn" id="annos" aria-pressed="true" type="button">Measurements shown</button><span class="spec">Spacing steps: <b>8 · 16 · 24 · 32 · 40</b>. Gap between cards 16, between rows 12. Overlay fades in 200 ms, hides after 3 s of play.</span></div>
 
   <div class="frames two" id="layouts">
-    <figure class="f"><div class="frame"><div class="screen D">
+    <figure class="f th-kino"><div class="frame"><div class="screen D">
       <div class="crumb">SD CARD / MOVIES</div><div class="count">6 ITEMS</div>
       <div class="an fill" style="left:0;top:0;width:1024px;height:80px"><em class="r b">HEADER 0–80</em></div>
       <div class="an" style="left:40px;top:96px;width:944px;height:544px"><em>CONTENT 96–640 · 944 WIDE</em></div>
       <div class="dock"><span><span class="key p">A</span>Play</span><span><span class="key">B</span>Back</span><span><span class="key">Y</span>Options</span></div>
-      <div class="an fill" style="left:40px;top:652px;width:944px;height:88px"><em>DOCK 652–740</em></div>
+      <div class="an fill" style="left:0;top:664px;width:1024px;height:104px"><em>DOCK 664–768 · FULL BLEED</em></div>
       <div class="an" style="left:0;top:300px;width:40px;height:120px"><em style="left:-2px;top:-34px">40</em></div>
       <div class="an" style="left:984px;top:300px;width:40px;height:120px"><em class="r" style="right:-2px;top:-34px">40</em></div>
-    </div></div><figcaption><b>The grid.</b> Crumb left and count right in Label style at y 30, on #161616. Content 96–640. Dock 652–740. Under test: the ground's light point at top centre instead of top left, which lifts the count from 3.2:1 to 4.8:1.</figcaption></figure>
+    </div></div><figcaption><b>The grid.</b> Crumb left and count right in Label style at y 30, in on-ground #f2f2f0. Content 96–640. Dock 664 to the bottom edge, edge to edge. The ground's light point sits top-left by default; dot_set_ground can move it to top centre.</figcaption></figure>
 
-    <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D">
+    <figure class="f th-kino"><div class="frame"><div class="screen D">
       <div class="crumb">SD CARD / MOVIES</div><div class="count">6 ITEMS</div>
       <div class="card" style="left:40px;top:96px;width:460px;height:528px">
         <div class="vid" style="left:16px;top:16px;width:428px;height:240px;border-radius:20px"><i class="sun"></i><i class="h1"></i><i class="h2"></i><i class="water"></i></div>
-        <div class="abs t-title" style="left:30px;top:278px">The Long Harbour</div>
-        <div class="abs lab" style="left:30px;top:328px">2021 · 1080P · MKV</div>
-        <div class="abs lab" style="left:30px;top:388px;color:var(--text)"><span class="adot"></span>&nbsp; RESUME</div>
-        <div class="abs t-l" style="left:28px;top:416px">41:12</div>
-        <div class="dots" style="left:30px;top:494px;width:400px"><b style="width:37%"></b></div>
+        <div class="abs t-title" style="left:30px;top:272px">The Long Harbour</div>
+        <div class="abs lab" style="left:30px;top:330px">2021 · 1080P · MKV</div>
+        <div class="abs lab" style="left:30px;top:380px;color:var(--text)"><span class="adot"></span>&nbsp; RESUME</div>
+        <div class="abs t-l" style="left:28px;top:414px">41:12</div>
+        <div class="dots" style="left:30px;top:490px;width:400px"><b style="width:37%"></b></div>
       </div>
       <div class="lrow" style="left:524px;top:96px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">Series</span><span class="mt">14</span></div>
-      <div class="lrow sel" style="left:524px;top:190px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">The Long Harbour</span><span class="mt">37%</span></div>
-      <div class="lrow" style="left:524px;top:284px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Northern Lights</span><span class="mt">12:40</span></div>
-      <div class="lrow" style="left:524px;top:378px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Summer Cabin 2024</span><span class="mt">SEEN</span></div>
-      <div class="lrow" style="left:524px;top:472px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Rally Highlights</span><span class="mt">82%</span></div>
+      <div class="lrow sel" style="left:524px;top:204px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">The Long Harbour</span><span class="mt">37%</span></div>
+      <div class="lrow" style="left:524px;top:312px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Northern Lights</span><span class="mt">12:40</span></div>
+      <div class="lrow" style="left:524px;top:420px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Summer Cabin 2024</span><span class="mt">SEEN</span></div>
+      <div class="lrow" style="left:524px;top:528px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Rally Highlights</span><span class="mt">82%</span></div>
       <div class="dock"><span><span class="key p">A</span>Resume</span><span><span class="key">X</span>From start</span><span><span class="key">B</span>Back</span><span><span class="key">Y</span>Options</span></div>
       <div class="an" style="left:40px;top:96px;width:460px;height:528px"><em class="b">DETAIL 460</em></div>
       <div class="an" style="left:500px;top:96px;width:24px;height:528px"><em style="top:250px;left:-6px">24</em></div>
-      <div class="an" style="left:524px;top:96px;width:460px;height:78px"><em class="r">ROW 460×78</em></div>
-      <div class="an" style="left:524px;top:174px;width:460px;height:16px"><em class="r" style="top:-6px">16</em></div>
-    </div></div><figcaption><b>(a) List + detail.</b> Detail card 460 on the left, rows 460 on the right, pitch 94 (78 + 16). Five rows. Kino browse.</figcaption></figure>
+      <div class="an" style="left:524px;top:96px;width:460px;height:96px"><em class="r">ROW 460×96</em></div>
+      <div class="an" style="left:524px;top:192px;width:460px;height:12px"><em class="r" style="top:-8px">12</em></div>
+    </div></div><figcaption><b>(a) List + detail.</b> Detail card 460 on the left, rows 460 on the right, pitch 108 (96 + 12). Five rows, 96–624. Kino browse.</figcaption></figure>
 
-    <figure class="f" style="--acc:#ff3b30"><div class="frame"><div class="screen D">
+    <figure class="f th-musicdisk"><div class="frame"><div class="screen D">
       <div class="crumb">SCENE.ORG / MUSIC / ARTISTS</div><div class="count">212</div>
       <div class="lrow" style="left:40px;top:96px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">aceman</span><span class="mt">31</span></div>
-      <div class="lrow sel" style="left:40px;top:190px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">captain</span><span class="mt">18</span></div>
-      <div class="lrow" style="left:40px;top:284px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">dreamfish</span><span class="mt">9</span></div>
-      <div class="lrow" style="left:40px;top:378px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">jogeir liljedahl</span><span class="mt">44</span></div>
-      <div class="lrow" style="left:40px;top:472px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">lizardking</span><span class="mt">27</span></div>
-      <div class="pill" style="left:40px;top:572px;height:56px"><span class="adot"></span>Playing · Space Debris</div>
+      <div class="lrow sel" style="left:40px;top:204px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">captain</span><span class="mt">18</span></div>
+      <div class="lrow" style="left:40px;top:312px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">dreamfish</span><span class="mt">9</span></div>
+      <div class="lrow" style="left:40px;top:420px;width:944px"><span class="ic"><svg class="ico"><use href="#i-folder"/></svg></span><span class="nm">jogeir liljedahl</span><span class="mt">44</span></div>
+      <div class="pill" style="left:40px;top:546px"><span class="adot"></span>Playing · Space Debris</div>
       <div class="dock"><span><span class="key p">A</span>Open</span><span><span class="key">B</span>Back</span><span><span class="key wide">L1 R1</span>Letter</span><span><span class="key">Y</span>Random</span></div>
-      <div class="an" style="left:40px;top:96px;width:944px;height:78px"><em class="r">ROW 944×78</em></div>
-      <div class="an" style="left:40px;top:572px;width:420px;height:56px"><em class="r">NOW-PLAYING PILL, OPTIONAL</em></div>
-    </div></div><figcaption><b>(b) Full list.</b> Rows 944 wide, same 94 pitch, five rows. A now-playing pill may take the last slot. Musicdisk browse, Tuner channel list.</figcaption></figure>
+      <div class="an" style="left:40px;top:96px;width:944px;height:96px"><em class="r">ROW 944×96</em></div>
+      <div class="an" style="left:40px;top:546px;width:440px;height:60px"><em class="r" style="top:-36px">NOW-PLAYING PILL, OPTIONAL</em></div>
+    </div></div><figcaption><b>(b) Full list.</b> Rows 944 wide, same 108 pitch, five rows. A now-playing pill may take the last slot. Musicdisk browse, Tuner channel list.</figcaption></figure>
 
-    <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D">
+    <figure class="f th-kino"><div class="frame"><div class="screen D night">
       <div class="vid" style="inset:0"><i class="sun"></i><i class="h1"></i><i class="h2"></i><i class="water"></i></div>
       <div class="pill" style="left:40px;top:36px"><span class="adot"></span>The Long Harbour</div>
       <div class="pill mono" style="right:40px;top:36px">1080P · 5.1</div>
       <div class="card" style="left:40px;top:500px;width:944px;height:232px">
         <div class="abs t-xl" style="left:36px;top:26px">41:12</div>
-        <div class="abs lab" style="left:330px;top:46px">/ 1:52:08</div>
+        <div class="abs lab" style="left:330px;top:40px">/ 1:52:08</div>
         <div class="abs lab" style="left:330px;top:84px;color:var(--text)"><span class="adot"></span>&nbsp; PAUSED</div>
         <div class="abs" style="right:36px;top:22px;display:flex;gap:18px;align-items:center"><span class="round"><svg class="ico"><use href="#i-back"/></svg></span><span class="round big"><svg class="ico"><use href="#i-play"/></svg></span><span class="round"><svg class="ico"><use href="#i-fwd"/></svg></span></div>
         <div class="dots" style="left:36px;top:144px;width:872px"><b style="width:37%"></b><i style="left:37%"></i></div>
-        <div class="abs lab" style="left:36px;top:190px">◀ ▶ 10 S · ▼ SCRUB · L1 R1 FILTER · L2 R2 ASPECT</div>
+        <div class="abs lab" style="left:36px;top:186px">◀ ▶ 10 S · ▼ SCRUB · L1 R1 FILTER</div>
       </div>
-      <div class="an" style="left:40px;top:36px;width:944px;height:56px"><em class="b" style="left:auto;right:300px">PILLS AT Y 36, 56 HIGH</em></div>
+      <div class="an" style="left:40px;top:36px;width:944px;height:60px"><em class="b" style="left:auto;right:300px">PILLS AT Y 36, 60 HIGH</em></div>
       <div class="an" style="left:40px;top:500px;width:944px;height:232px"><em class="r b">OVERLAY CARD 944×232 AT Y 500</em></div>
-    </div></div><figcaption><b>(c) Full-screen media + overlay.</b> Top pills, bottom card with Display XL time, round buttons and dot progress. The card replaces the dock; its last line is the button hint. Left/right light the rewind or forward button for a moment; down moves the focus to the progress bar to scrub. Kino and Tuner playing.</figcaption></figure>
+    </div></div><figcaption><b>(c) Full-screen media + overlay.</b> Top pills, bottom card with Display XL time, round buttons and dot progress; over video the card is solid under its glass. The card replaces the dock; its last line is the button hint. Left/right light the rewind or forward button for a moment; down moves the focus to the progress bar to scrub. Kino and Tuner playing.</figcaption></figure>
 
-    <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D">
+    <figure class="f th-kino"><div class="frame"><div class="screen D">
       <div class="abs t-m" style="left:40px;top:28px">OPTIONS</div>
-      <div class="abs lab" style="right:40px;top:40px;color:#161616">B CLOSE</div>
-      <div class="card pad" style="left:40px;top:96px;width:464px;height:206px"><span class="hd">Aspect</span>
+      <div class="abs lab" style="right:40px;top:40px;color:var(--on-ground)">B CLOSE</div>
+      <div class="card pad" style="left:40px;top:96px;width:464px;height:216px"><span class="hd">Aspect</span>
         <div class="chips"><span class="chip on">Original</span><span class="chip">4:3</span><span class="chip">16:9</span><span class="chip">Stretch</span><span class="chip">Zoom</span></div></div>
-      <div class="card pad" style="left:40px;top:318px;width:464px;height:254px"><span class="hd">Picture</span>
+      <div class="card pad" style="left:40px;top:328px;width:464px;height:302px"><span class="hd">Picture</span>
         <div class="opt focus"><span>Brightness</span><span class="sl"><b style="width:50%"></b></span></div>
         <div class="opt"><span>Contrast</span><span class="sl"><b style="width:60%"></b></span></div>
         <div class="opt"><span>Deinterlace</span><span class="v">AUTO</span></div></div>
-      <div class="card pad" style="left:520px;top:96px;width:464px;height:254px"><span class="hd">Subtitles</span>
+      <div class="card pad" style="left:520px;top:96px;width:464px;height:230px"><span class="hd">Subtitles</span>
         <div class="opt"><span>Show</span><span class="tg on"></span></div>
-        <div class="opt"><span>Track</span><span class="v">ENGLISH</span></div>
-        <div class="opt"><span>Prefer</span><span class="v">ENG, NOR</span></div></div>
-      <div class="card pad" style="left:520px;top:366px;width:464px;height:198px"><span class="hd">Brick</span>
+        <div class="opt"><span>Track</span><span class="v">ENGLISH</span></div></div>
+      <div class="card pad" style="left:520px;top:342px;width:464px;height:230px"><span class="hd">Brick</span>
         <div class="opt"><span>Lights follow video</span><span class="tg"></span></div>
         <div class="opt"><span>Hardware decoding</span><span class="tg on"></span></div></div>
       <div class="dock"><span><span class="key p">A</span>Change</span><span><span class="key wide">◀ ▶</span>Adjust</span><span><span class="key">B</span>Close</span></div>
-      <div class="an" style="left:40px;top:96px;width:464px;height:476px"><em class="b">COLUMN 464</em></div>
-      <div class="an" style="left:504px;top:96px;width:16px;height:476px"><em style="top:200px;left:-8px">16</em></div>
-      <div class="an" style="left:520px;top:96px;width:464px;height:476px"><em class="r b">COLUMN 464</em></div>
-    </div></div><figcaption><b>(d) Options.</b> Display M title at top-left with "B CLOSE" right. Two columns of 464 with a 16 gap, cards stacked 16 apart, each as tall as its content. Over video it uses the Night scheme.</figcaption></figure>
+      <div class="an" style="left:40px;top:96px;width:464px;height:534px"><em class="b">COLUMN 464</em></div>
+      <div class="an" style="left:504px;top:96px;width:16px;height:534px"><em style="top:200px;left:-8px">16</em></div>
+      <div class="an" style="left:520px;top:96px;width:464px;height:534px"><em class="r b">COLUMN 464</em></div>
+    </div></div><figcaption><b>(d) Options.</b> Display M title at top-left with "B CLOSE" right. Two columns of 464 with a 16 gap, cards stacked 16 apart, each as tall as its content (option rows at a 72 pitch). Over video it uses the Night scheme.</figcaption></figure>
   </div>
 </section>
 
-<!-- 7 -->
-<section aria-labelledby="s7">
-  <div class="sh"><span class="n">7</span><h2 id="s7">One screen per app</h2><p>The same parts, three apps. Only the accent dot and the content change.</p></div>
+<!-- 9 -->
+<section aria-labelledby="s9">
+  <div class="sh"><span class="n">9</span><h2 id="s9">One screen per app</h2><p>The same parts, three apps. Only the ground, the accent dot and the content change.</p></div>
   <div class="frames">
-    <figure class="f" style="--acc:#ff6a2b"><div class="frame"><div class="screen D">
+    <figure class="f th-kino"><div class="frame"><div class="screen D">
       <div class="crumb">SD CARD / SERIES / NORTHERN</div><div class="count">8 ITEMS</div>
       <div class="card" style="left:40px;top:96px;width:460px;height:528px">
-        <div class="vid cool" style="left:16px;top:16px;width:428px;height:240px;border-radius:20px"><i class="sun"></i><i class="h1"></i><i class="h2"></i><i class="water"></i></div>
-        <div class="abs t-title" style="left:30px;top:278px">Episode 3 · Ice</div>
-        <div class="abs lab" style="left:30px;top:328px">720P · HEVC · MKV</div>
-        <div class="abs lab" style="left:30px;top:388px;color:var(--text)"><span class="adot" style="background:#3b8fb3"></span>&nbsp; RESUME</div>
-        <div class="abs t-l" style="left:28px;top:416px">18:05</div>
-        <div class="dots" style="left:30px;top:494px;width:400px"><b style="width:42%"></b></div>
+        <div class="vid" style="left:16px;top:16px;width:428px;height:240px;border-radius:20px"><i class="sun"></i><i class="h1"></i><i class="h2"></i><i class="water"></i></div>
+        <div class="abs t-title" style="left:30px;top:272px">Episode 3 · Ice</div>
+        <div class="abs lab" style="left:30px;top:330px">720P · HEVC · MKV</div>
+        <div class="abs lab" style="left:30px;top:380px;color:var(--text)"><span class="adot" style="background:#ff8a4c"></span>&nbsp; RESUME</div>
+        <div class="abs t-l" style="left:28px;top:414px">18:05</div>
+        <div class="dots" style="left:30px;top:490px;width:400px"><b style="width:42%"></b></div>
       </div>
       <div class="lrow" style="left:524px;top:96px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 1 · Dark</span><span class="mt">SEEN</span></div>
-      <div class="lrow" style="left:524px;top:190px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 2 · Snow</span><span class="mt">SEEN</span></div>
-      <div class="lrow sel" style="left:524px;top:284px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 3 · Ice</span><span class="mt">42%</span></div>
-      <div class="lrow" style="left:524px;top:378px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 4 · Thaw</span><span class="mt">43:10</span></div>
-      <div class="lrow" style="left:524px;top:472px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 5 · Light</span><span class="mt">44:02</span></div>
+      <div class="lrow" style="left:524px;top:204px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 2 · Snow</span><span class="mt">SEEN</span></div>
+      <div class="lrow sel" style="left:524px;top:312px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 3 · Ice</span><span class="mt">42%</span></div>
+      <div class="lrow" style="left:524px;top:420px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 4 · Thaw</span><span class="mt">43:10</span></div>
+      <div class="lrow" style="left:524px;top:528px"><span class="ic"><svg class="ico"><use href="#i-film"/></svg></span><span class="nm">Episode 5 · Light</span><span class="mt">44:02</span></div>
       <div class="dock"><span><span class="key p">A</span>Resume</span><span><span class="key">X</span>From start</span><span><span class="key">B</span>Back</span><span><span class="key">Y</span>Options</span></div>
-    </div></div><figcaption><b>Kino · Browse.</b> The resume dot has taken the episode's blue.</figcaption></figure>
+    </div></div><figcaption><b>Kino · Browse.</b> Midnight blue ground. The resume dot has taken the episode's orange.</figcaption></figure>
 
-    <figure class="f" style="--acc:#ff3b30"><div class="frame"><div class="screen D">
+    <figure class="f th-musicdisk"><div class="frame"><div class="screen D">
       <div class="crumb">NOW PLAYING</div><div class="count">MOD · 4 CH</div>
       <div class="card" style="left:40px;top:96px;width:944px;height:528px">
         <div class="abs lab" style="left:36px;top:34px;color:var(--text)"><span class="adot"></span>&nbsp; PLAYING</div>
-        <div class="abs t-title" style="left:36px;top:76px;font-size:40px">Space Debris</div>
-        <div class="abs" style="left:36px;top:128px;font:400 24px var(--sans);color:var(--label)">Captain · Protracker M.K.</div>
+        <div class="abs t-title" style="left:36px;top:76px">Space Debris</div>
+        <div class="abs t-bodys" style="left:36px;top:130px;color:var(--label)">Captain · Protracker M.K.</div>
         <div class="abs t-xl" style="left:34px;top:190px">01:48</div>
         <div class="abs lab" style="left:330px;top:212px">/ 05:05</div>
         <div class="dots" style="left:36px;top:300px;width:872px"><b style="width:35%"></b></div>
-        <div class="vu" style="left:36px;top:352px">
+        <div class="vu" style="left:36px;top:346px">
           <div class="col"><i></i><i></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><span>1</span></div>
           <div class="col"><i></i><i></i><i></i><i></i><i class="l"></i><i class="l"></i><i class="l"></i><span>2</span></div>
           <div class="col"><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><span>3</span></div>
@@ -604,18 +685,17 @@ td .key.wide { margin-right: -30px; }
         <div class="abs" style="right:36px;top:380px;display:flex;gap:18px;align-items:center"><span class="round"><svg class="ico"><use href="#i-prev"/></svg></span><span class="round big"><svg class="ico"><use href="#i-pause"/></svg></span><span class="round"><svg class="ico"><use href="#i-next"/></svg></span></div>
       </div>
       <div class="dock"><span><span class="key p">A</span>Pause</span><span><span class="key wide">L1 R1</span>Song</span><span><span class="key wide">SELECT</span>Screen</span><span><span class="key">B</span>Browse</span></div>
-    </div></div><figcaption><b>Musicdisk · Now playing.</b> Dot-matrix time, dot VU per channel, red playing dot.</figcaption></figure>
+    </div></div><figcaption><b>Musicdisk · Now playing.</b> Rose ground. Dot-matrix time, dot VU per channel, magenta playing dot. Four hints with two wide keys: the dock's gaps close up.</figcaption></figure>
 
-    <figure class="f" style="--acc:#34c759"><div class="frame"><div class="screen D">
+    <figure class="f th-tuner"><div class="frame"><div class="screen D">
       <div class="crumb">CHANNELS / NORWAY</div><div class="count">19:12</div>
-      <div class="lrow" style="left:40px;top:96px;width:944px"><span class="logo" style="background:#2b2b2d;color:#f2f2f0">101</span><span class="two"><span class="nm">Channel One</span><small>Evening news · 19:00–19:45</small></span><span class="mt">101</span></div>
-      <div class="lrow sel" style="left:40px;top:190px;width:944px"><span class="logo" style="background:var(--ink);color:var(--paper)"><span class="adot"></span></span><span class="two"><span class="nm">Channel Two · LIVE</span><small>Football: Cup quarter-final · ends 20:50</small></span><span class="mt">102</span></div>
-      <div class="lrow" style="left:40px;top:284px;width:944px"><span class="logo" style="background:#2b2b2d;color:#f2f2f0">103</span><span class="two"><span class="nm">Nature Plus</span><small>Coastlines · 19:10–20:00</small></span><span class="mt">103</span></div>
-      <div class="lrow" style="left:40px;top:378px;width:944px"><span class="logo" style="background:#2b2b2d;color:#f2f2f0">104</span><span class="two"><span class="nm">Kids Hour</span><small>Cartoons · until 20:00</small></span><span class="mt">104</span></div>
-      <div class="lrow" style="left:40px;top:472px;width:944px"><span class="logo" style="background:#2b2b2d;color:#f2f2f0">105</span><span class="two"><span class="nm">Weather 24</span><small>Forecast loop</small></span><span class="mt">105</span></div>
-      <div class="pill mono" style="left:40px;top:572px"><span class="adot"></span>NEXT ON TWO · 20:50 STUDIO</div>
+      <div class="lrow" style="left:40px;top:96px;width:944px"><span class="logo" style="background:rgba(255,255,255,.10);color:#f2f2f0">101</span><span class="two"><span class="nm">Channel One</span><small>Evening news · 19:00–19:45</small></span><span class="mt">101</span></div>
+      <div class="lrow sel" style="left:40px;top:204px;width:944px"><span class="logo" style="background:var(--ink);color:var(--paper)"><span class="adot"></span></span><span class="two"><span class="nm">Channel Two · LIVE</span><small>Football: Cup quarter-final · ends 20:50</small></span><span class="mt">102</span></div>
+      <div class="lrow" style="left:40px;top:312px;width:944px"><span class="logo" style="background:rgba(255,255,255,.10);color:#f2f2f0">103</span><span class="two"><span class="nm">Nature Plus</span><small>Coastlines · 19:10–20:00</small></span><span class="mt">103</span></div>
+      <div class="lrow" style="left:40px;top:420px;width:944px"><span class="logo" style="background:rgba(255,255,255,.10);color:#f2f2f0">104</span><span class="two"><span class="nm">Kids Hour</span><small>Cartoons · until 20:00</small></span><span class="mt">104</span></div>
+      <div class="pill mono" style="left:40px;top:546px"><span class="adot"></span>NEXT ON TWO · 20:50 STUDIO</div>
       <div class="dock"><span><span class="key p">A</span>Watch</span><span><span class="key">Y</span>Guide</span><span><span class="key">X</span>Favourite</span><span><span class="key">B</span>Back</span></div>
-    </div></div><figcaption><b>Tuner · Channel list.</b> Two-line rows with now/next, green LIVE dot on the channel that is on.</figcaption></figure>
+    </div></div><figcaption><b>Tuner · Channel list.</b> Teal ground. Two-line rows with now/next, cyan LIVE dot on the channel that is on.</figcaption></figure>
   </div>
 </section>
 
@@ -628,6 +708,18 @@ td .key.wide { margin-right: -30px; }
   if ("ResizeObserver" in window) { var ro = new ResizeObserver(fit); frames.forEach(function (f) { ro.observe(f); }); }
   window.addEventListener("resize", fit);
   fit();
+  // The dock's gaps, as dot_dock(): 44, squeezed down to 20 when the hints don't fit in 1024 - 2 x 40 - 48.
+  function docks() {
+    document.querySelectorAll(".dock").forEach(function (d) {
+      var h = d.children, n = h.length, total = 0, gap = 44, room = 1024 - 80 - 48;
+      if (n < 2) return;
+      for (var i = 0; i < n; i++) total += h[i].offsetWidth;
+      if (total + gap * (n - 1) > room) gap = Math.max(20, Math.floor((room - total) / (n - 1)));
+      d.style.gap = gap + "px";
+    });
+  }
+  docks();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(docks);
   var b = document.getElementById("annos"), lay = document.getElementById("layouts");
   b.addEventListener("click", function () {
     var on = b.getAttribute("aria-pressed") !== "true";

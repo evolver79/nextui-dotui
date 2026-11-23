@@ -1,5 +1,6 @@
-// Dot: the shared look of the NextUI paks (Kino, Musicdisk, Tuner). Every number here matches the style guide page.
-// Screen: 1024x768 logical, the Brick's 3.2" panel. Nothing is drawn smaller than 22 px.
+// Dot: the shared look of the NextUI paks (Kino, Musicdisk, Tuner, Speed). Every number here matches the style guide page.
+// Screen: 1024x768 logical, the Brick's 3.2" panel at about 400 ppi: body text 32 px is a 2 mm letter. Nothing is
+// drawn smaller than 24 px.
 #pragma once
 
 // --- colour -----------------------------------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 #define DOT_INK         0x111111   // text on paper
 #define DOT_TEXT        0xf2f2f0
 #define DOT_LABEL       0x9d9d9a
-#define DOT_DIM         0x7a7a77   // 4.5:1 on a card: disabled, but still readable
+#define DOT_DIM         0x7a7a77   // about 4.2:1 on glass: disabled, but still readable
 #define DOT_SCRIM_ALPHA 179        // Night: black at 70% over video
 // The accent is a state dot only (playing, paused, resume, live), never focus. One per app:
 #define DOT_ACCENT_KINO      0x5cc9ff   // sky blue; on the cards it follows the video's colour when playing
@@ -55,12 +56,12 @@ typedef struct { unsigned int ground_hi, ground_mid, ground_lo, accent; } DotThe
 enum DotType {
   DOT_DISPLAY_XL,   // Doto Black 92: clock, time
   DOT_DISPLAY_L,    // Doto Black 70
-  DOT_DISPLAY_M,    // Doto Black 48: screen titles
-  DOT_TITLE,        // Geist SemiBold 32
-  DOT_BODY,         // Geist Medium 25: list rows
-  DOT_BODY_S,       // Geist Regular 24
-  DOT_LABEL_T,      // Geist Mono Medium 22, uppercase, tracking .14em
-  DOT_VALUE,        // Geist Mono Medium 22: numbers at the right of rows
+  DOT_DISPLAY_M,    // Doto Black 52: screen titles
+  DOT_TITLE,        // Geist SemiBold 40
+  DOT_BODY,         // Geist Medium 32: list rows
+  DOT_BODY_S,       // Geist Medium 28
+  DOT_LABEL_T,      // Geist Mono Medium 28, uppercase, tracking .08em
+  DOT_VALUE,        // Geist Mono Medium 28: numbers at the right of rows
   DOT_NTYPES
 };
 

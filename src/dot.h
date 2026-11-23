@@ -1,4 +1,4 @@
-// Dot: the shared UI of the NextUI paks (Kino, Musicdisk, Tuner). C + SDL2 renderer + SDL2_ttf.
+// Dot: the shared UI of the NextUI paks (Kino, Musicdisk, Tuner, Speed). C + SDL2 renderer + SDL2_ttf.
 // Positions are the style guide's: x/y is the top-left of the element's box, as in the page's CSS, in 1024x768 px.
 // Text and shapes are rendered once to textures and cached (key = what and how), so drawing every frame is cheap.
 #pragma once
@@ -8,14 +8,14 @@
 typedef struct Dot Dot;
 
 // Extra text styles used inside components (the public scale is DotType in dot_tokens.h).
-enum { DOT_UI = DOT_NTYPES,   // Geist Medium 24: dock, pills, option rows
-       DOT_CHIP_T,            // Geist Medium 23: chips
-       DOT_SMALL,             // Geist Regular 22: second line of a row
-       DOT_KEY_T,             // Geist Mono Medium 22: key caps
-       DOT_KEY_WIDE,          // Geist Mono Medium 22, tracking .06em: wide key caps
-       DOT_PILL_MONO,         // Geist Mono Medium 22, tracking .1em, uppercase: fact pills
-       DOT_PANEL_T,           // Geist Mono Medium 26, tracking .14em, uppercase: card headings
-       DOT_VALUE_L,           // Geist Mono Medium 30: columns of numbers and notes (Musicdisk's pattern)
+enum { DOT_UI = DOT_NTYPES,   // Geist Medium 30: dock, pills, option rows
+       DOT_CHIP_T,            // Geist Medium 28: chips
+       DOT_SMALL,             // Geist Medium 26: second line of a row
+       DOT_KEY_T,             // Geist Mono Medium 26: key caps
+       DOT_KEY_WIDE,          // Geist Mono Medium 24, tracking .04em: wide key caps
+       DOT_PILL_MONO,         // Geist Mono Medium 24, tracking .08em, uppercase: fact pills
+       DOT_PANEL_T,           // Geist Mono Medium 26, tracking .1em, uppercase: card headings
+       DOT_VALUE_L,           // Geist Mono Medium 32: columns of numbers and notes (Musicdisk's pattern)
        DOT_NSTYLES };
 
 enum DotAlign { DOT_LEFT, DOT_CENTER, DOT_RIGHT };
