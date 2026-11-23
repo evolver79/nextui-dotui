@@ -95,8 +95,8 @@ enum DotType {
 #define DOT_HEADER_Y 34    // crumb / count baseline band 0-80
 #define DOT_CONTENT_TOP 96
 #define DOT_CONTENT_BOTTOM 640
-#define DOT_DOCK_Y 652
-#define DOT_DOCK_H 88
+#define DOT_DOCK_Y 664    // the dock: full bleed from here to the bottom edge
+#define DOT_DOCK_H 104
 // motion (ms)
 #define DOT_FADE_MS 200
 #define DOT_AUTOHIDE_MS 3000

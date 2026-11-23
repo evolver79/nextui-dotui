@@ -688,10 +688,8 @@ int dot_panel_h(int content_h) { return DOT_PAD + 26 + 20 + content_h + DOT_PAD;
 
 void dot_dock(Dot *d, const DotHint *h, int n) {
   if (n > 4) n = 4;
-  // Glass: a thin fill that lets the ground (or the video, as smoked glass) show through, and a light hairline edge.
-  int dx = DOT_MARGIN, dw = DOT_W - 2 * DOT_MARGIN, rr = DOT_R_CARD;   // the cards' radius
-  dot_rect(d, dx, DOT_DOCK_Y, dw, DOT_DOCK_H, rr, DOT_GLASS, 150 * d->alpha / 255);   // dark glass: light text at 12:1 or more
-  blit(d, tex_rrect(d, dw, DOT_DOCK_H, rr, 2), dx, DOT_DOCK_Y, 0xffffff, 56 * d->alpha / 255);
+  // Full bleed along the bottom, edge to edge, no corners or rim: dark glass the ground shows through.
+  dot_rect(d, 0, DOT_DOCK_Y, DOT_W, DOT_H - DOT_DOCK_Y, 0, DOT_GLASS, 140 * d->alpha / 255);
   int total = 0, cy = DOT_DOCK_Y + DOT_DOCK_H / 2;
   int gap = 44, room = DOT_W - 2 * DOT_MARGIN - 48;
   for (int i = 0; i < n; i++) total += key_w(d, h[i].key) + 14 + dot_text_w(d, DOT_UI, h[i].text);
