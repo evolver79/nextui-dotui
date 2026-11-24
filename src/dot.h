@@ -27,6 +27,11 @@ enum DotGround { DOT_GROUND_TOPLEFT, DOT_GROUND_TOPCENTRE };   // OPEN.md questi
 typedef struct { const char *key; const char *text; } DotHint;   // key "A", "B", "X", "Y", "L1 R1", "<>" = ◀ ▶
 
 // --- setup ------------------------------------------------------------------------------------------------------
+// The screen size, before dot_init and before making the window: dot_screen_detect() finds it (DOT_SCREEN=WxH in the
+// environment, else the display's mode when it's the Brick's 1024x768 or the Smart Pro's 1280x720, else 1024x768) and
+// sets it; dot_screen() sets it outright. Then DOT_W and DOT_H are the window's and the logical size.
+void dot_screen(int w, int h);
+void dot_screen_detect(void);
 Dot *dot_init(SDL_Renderer *r, const char *font_dir, Uint32 accent);   // NULL on failure (SDL_GetError says why)
 void dot_quit(Dot *d);
 void dot_frame(Dot *d);                      // call once per frame before drawing (ages the cache)

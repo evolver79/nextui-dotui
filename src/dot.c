@@ -367,6 +367,20 @@ int dot_time(Dot *d, int st, const char *s, int x, int y, Uint32 rgb, int align)
 }
 
 // --- setup ------------------------------------------------------------------------------------------------------
+int dot_screen_w = 1024, dot_screen_h = 768;
+void dot_screen(int w, int h) { if (w > 0 && h > 0) { dot_screen_w = w; dot_screen_h = h; } }
+void dot_screen_detect(void) {
+  int w = 0, h = 0;
+  const char *e = getenv("DOT_SCREEN");   // for shots, and to try a size on a desktop
+  if (e && sscanf(e, "%dx%d", &w, &h) == 2 && w >= 640 && h >= 480) { dot_screen(w, h); return; }
+  SDL_DisplayMode m;
+  if (SDL_GetCurrentDisplayMode(0, &m) == 0) {
+    if (m.w < m.h) { int t = m.w; m.w = m.h; m.h = t; }   // a portrait panel (the Smart Pro's is 720x1280 inside)
+    if ((m.w == 1024 && m.h == 768) || (m.w == 1280 && m.h == 720)) { dot_screen(m.w, m.h); return; }
+  }
+  dot_screen(1024, 768);
+}
+
 Dot *dot_init(SDL_Renderer *r, const char *font_dir, Uint32 accent) {
   if (!TTF_WasInit() && TTF_Init() < 0) return NULL;
   Dot *d = calloc(1, sizeof *d);
@@ -600,7 +614,7 @@ int dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align)
 void dot_toast(Dot *d, const char *s, float alpha) {
   int a = d->alpha;
   d->alpha = (int)(clampf(alpha, 0, 1) * a);
-  dot_pill(d, DOT_W / 2, 572, s, 1, 0, DOT_CENTER);
+  dot_pill(d, DOT_W / 2, DOT_DOCK_Y - 92, s, 1, 0, DOT_CENTER);   // 572 on the Brick
   d->alpha = a;
 }
 

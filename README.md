@@ -1,6 +1,7 @@
 # Dot
 
-The shared look of the NextUI paks Kino, Musicdisk, Tuner and Speed (TrimUI Brick, 1024x768 at about 400 ppi): dark
+The shared look of the NextUI paks Kino, Musicdisk, Tuner and Speed (TrimUI Brick, 1024x768 at about 400 ppi, and
+TrimUI Smart Pro, 1280x720 at about 300 ppi): dark
 glass cards on an evening colour of each app's own, white for where you are, one accent dot for what is happening,
 dot-matrix numbers and titles, and type sized for the small screen (list rows 32 px).
 
@@ -15,6 +16,10 @@ Kino, Musicdisk and Tuner, and the component sheet `test/shots.sh` renders.
 Added to each pak as a git submodule (`ui/dot`). C + SDL2 + SDL2_ttf.
 
 - `src/dot_tokens.h`: colours, type scale, sizes and layout bands (the same numbers as the style guide page).
+- The screen: `dot_screen_detect()` (before the window) picks the Brick's 1024x768 or the Smart Pro's 1280x720 from the
+  display (`DOT_SCREEN=WxH` sets it, for shots), and `DOT_W`, `DOT_H` and the bottom bands follow it. Sizes stay in px:
+  the Smart Pro's px are a third larger, so its extra width goes to wider content and its 48 px less height to the
+  content band (96-592, the dock at 616; the Brick's 96-640 and 664).
 - `src/dot.h`, `src/dot.c`: the library. `dot_init(renderer, font_dir, accent)` and `dot_set_theme(d, &theme)` with the
   app's `DOT_THEME_*` (its evening ground and accent), then per frame `dot_frame` and the
   draw calls (ground, card, text, time, header, row, key, round, pill, toast, chip, toggle, slider, progress,

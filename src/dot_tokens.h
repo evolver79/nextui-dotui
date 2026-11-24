@@ -1,6 +1,7 @@
 // Dot: the shared look of the NextUI paks (Kino, Musicdisk, Tuner, Speed). Every number here matches the style guide page.
-// Screen: 1024x768 logical, the Brick's 3.2" panel at about 400 ppi: body text 32 px is a 2 mm letter. Nothing is
-// drawn smaller than 24 px.
+// Screen: the device's own pixels, set once by dot_screen() before drawing: the Brick's 1024x768 (3.2" at about 400 ppi:
+// body text 32 px is a 2 mm letter) or the Smart Pro's 1280x720 (4.95" at about 300 ppi: the same px are a third larger,
+// so the sizes stay px and the extra room goes to wider content). Nothing is drawn smaller than 24 px.
 #pragma once
 
 // --- colour -----------------------------------------------------------------------------------------------------
@@ -66,8 +67,9 @@ enum DotType {
 };
 
 // --- space and shape (px) ---------------------------------------------------------------------------------------
-#define DOT_W 1024
-#define DOT_H 768
+extern int dot_screen_w, dot_screen_h;   // 1024x768 until dot_screen()
+#define DOT_W dot_screen_w
+#define DOT_H dot_screen_h
 #define DOT_MARGIN 40
 #define DOT_GAP 16
 #define DOT_PAD 24
@@ -92,12 +94,14 @@ enum DotType {
 #define DOT_KNOB 24
 #define DOT_SLIDER_PITCH 17
 #define DOT_SLIDER_W 170
-// layout bands
+// layout bands: the top ones fixed, the bottom ones from the screen's height (Brick: content 96-640, dock 664;
+// Smart Pro: content 96-592, dock 616). Not constants any more: no use in static initialisers or array sizes.
 #define DOT_HEADER_Y 34    // crumb / count baseline band 0-80
 #define DOT_CONTENT_TOP 96
-#define DOT_CONTENT_BOTTOM 640
-#define DOT_DOCK_Y 664    // the dock: full bleed from here to the bottom edge
 #define DOT_DOCK_H 104
+#define DOT_DOCK_Y (DOT_H - DOT_DOCK_H)              // the dock: full bleed from here to the bottom edge
+#define DOT_CONTENT_BOTTOM (DOT_DOCK_Y - 24)
+#define DOT_CONTENT_W (DOT_W - 2 * DOT_MARGIN)      // the content's width between the margins: 944 or 1200
 // motion (ms)
 #define DOT_FADE_MS 200
 #define DOT_AUTOHIDE_MS 3000
