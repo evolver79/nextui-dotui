@@ -337,6 +337,40 @@ int dot_text(Dot *d, int st, const char *s, int x, int y, Uint32 rgb, int align,
   return text_c(d, st, s, x, y + dot_line_h(d, st) / 2, rgb, align, maxw);
 }
 
+// Text too long for its room, scrolling (a focused title): it holds for DOT_SCROLL_HOLD ms, then moves left at
+// DOT_SCROLL_PX px a second until it has come round again (a gap, then the start), and holds again. Each text keeps its
+// own clock while it's drawn; not drawn for a moment, it starts again from the beginning. Still (screenshots): cut.
+#define SCROLL_GAP 64
+static int text_scroll_c(Dot *d, int st, const char *s, int x, int cy, Uint32 rgb, int maxw) {
+  int w = dot_text_w(d, st, s);
+  if (maxw <= 0 || w <= maxw || d->still) return text_c(d, st, s, x, cy, rgb, DOT_LEFT, maxw);
+  static struct { unsigned key; Uint32 since, seen; } slot[6];
+  unsigned key = (unsigned)st * 2654435761u;
+  for (const char *c = s; *c; c++) key = key * 33u + (unsigned char)*c;
+  Uint32 now = SDL_GetTicks();
+  int k = -1, old = 0;
+  for (int i = 0; i < 6; i++) {
+    if (slot[i].key == key && now - slot[i].seen < 250) { k = i; break; }
+    if (slot[i].seen < slot[old].seen) old = i;
+  }
+  if (k < 0) { k = old; slot[k].key = key; slot[k].since = now; }
+  slot[k].seen = now;
+  int loop = w + SCROLL_GAP;
+  Uint32 cycle = DOT_SCROLL_HOLD + (Uint32)(loop * 1000 / DOT_SCROLL_PX), t = (now - slot[k].since) % cycle;
+  int off = t < DOT_SCROLL_HOLD ? 0 : (int)((t - DOT_SCROLL_HOLD) * DOT_SCROLL_PX / 1000);
+  SDL_Rect was, room = { x, cy - d->fh[st], maxw, 2 * d->fh[st] }, c;
+  int clipped = SDL_RenderIsClipEnabled(d->r);
+  if (clipped) { SDL_RenderGetClipRect(d->r, &was); if (!SDL_IntersectRect(&was, &room, &c)) return maxw; } else c = room;
+  SDL_RenderSetClipRect(d->r, &c);
+  text_c(d, st, s, x - off, cy, rgb, DOT_LEFT, 0);
+  if (off) text_c(d, st, s, x - off + loop, cy, rgb, DOT_LEFT, 0);
+  SDL_RenderSetClipRect(d->r, clipped ? &was : NULL);
+  return maxw;
+}
+int dot_text_scroll(Dot *d, int st, const char *s, int x, int y, Uint32 rgb, int maxw) {
+  return text_scroll_c(d, st, s, x, y + dot_line_h(d, st) / 2, rgb, maxw);
+}
+
 static int display_idx(int st) { return st == DOT_DISPLAY_XL ? 0 : st == DOT_DISPLAY_L ? 1 : st == DOT_DISPLAY_M ? 2 : -1; }
 
 int dot_time(Dot *d, int st, const char *s, int x, int y, Uint32 rgb, int align) {
@@ -531,6 +565,7 @@ void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus,
   SDL_Rect box = { x, y, w, h };
   if (img) {
     SDL_SetTextureColorMod(img, 255, 255, 255); SDL_SetTextureAlphaMod(img, d->alpha);
+    SDL_SetTextureBlendMode(img, d->alpha < 255 ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);   // fading (a peek): blended
     SDL_RenderCopy(d->r, img, NULL, &box);
   } else {
     SDL_SetRenderDrawBlendMode(d->r, SDL_BLENDMODE_NONE);
@@ -579,10 +614,12 @@ void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char
   if (adot) { dot_adot(d, right - 14, cy - 7, d->accent); right -= 14 + 18; }
   if (state & DOT_STAR) { dot_icon(d, DOT_I_STAR, right - 11, cy, 22, sel ? DOT_INK : DOT_TEXT); right -= 22 + 16; }
   Uint32 nc = sel ? DOT_INK : off ? DOT_DIM : DOT_TEXT;
+  // the focused row's name scrolls when it's too long for the row
   if (sub) {
-    text_c(d, DOT_BODY, name, tx, y + 32, nc, DOT_LEFT, right - tx);
+    if (sel) text_scroll_c(d, DOT_BODY, name, tx, y + 32, nc, right - tx); else text_c(d, DOT_BODY, name, tx, y + 32, nc, DOT_LEFT, right - tx);
     text_c(d, DOT_SMALL, sub, tx, y + 68, sel ? 0x444444 : DOT_LABEL, DOT_LEFT, right - tx);
-  } else text_c(d, DOT_BODY, name, tx, cy, nc, DOT_LEFT, right - tx);
+  } else if (sel) text_scroll_c(d, DOT_BODY, name, tx, cy, nc, right - tx);
+  else text_c(d, DOT_BODY, name, tx, cy, nc, DOT_LEFT, right - tx);
 }
 
 static int key_w(Dot *d, const char *key) {
@@ -783,6 +820,23 @@ static void list_pass(Dot *d, DotList *l, SDL_Rect clip, int n, int first, int l
     }
   }
 }
+// The fades: a zone from y0 to y1 drawn again in strips, opacity going from `from` (at y0) to `to` (at y1).
+typedef void (*PassFn)(Dot *d, SDL_Rect clip, void *ctx);
+static void fade_zone(Dot *d, int y0, int y1, float from, float to, PassFn pass, void *ctx) {
+  int a0 = d->alpha;
+  for (int sy = y0; sy < y1; sy += PEEK_STRIP) {
+    int h = y1 - sy < PEEK_STRIP ? y1 - sy : PEEK_STRIP;
+    float t = (sy + h / 2.0f - y0) / (y1 - y0), f = from + (to - from) * t;
+    if (from < to) f = f * f * f;   // fading upwards, under a header: gone well before the header's text
+    d->alpha = (int)(a0 * (f < 0 ? 0 : f > 1 ? 1 : f));
+    pass(d, (SDL_Rect){ 0, sy, DOT_W, h }, ctx);
+  }
+  d->alpha = a0;
+}
+typedef struct { DotList *l; int n, first, last, cursor, x, w; DotRowFn row; void *ud; } ListCtx;
+static void list_pass_fn(Dot *d, SDL_Rect clip, void *c) {
+  ListCtx *k = c; list_pass(d, k->l, clip, k->n, k->first, k->last, k->cursor, k->x, k->w, k->row, k->ud);
+}
 void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor, int x, int w, int peek, DotRowFn row, void *ud) {
   const int P = DOT_ROW_H + 12, Y = DOT_CONTENT_TOP;
   Uint32 now = SDL_GetTicks();
@@ -792,19 +846,14 @@ void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor,
     l->top = ease_to(l->top, top, k); l->cur = ease_to(l->cur, cursor, k);
   }
   l->key = key; l->at = now;
-  int peeks = peek && n > rows;
-  int first = (int)floorf(l->top), last = (int)ceilf(l->top) + rows;
+  int below = (peek & DOT_PEEK_BELOW) && n > rows, above = (peek & DOT_PEEK_ABOVE) && (top > 0 || l->top > 0);
+  int first = (int)floorf(l->top) - (above ? 1 : 0), last = (int)ceilf(l->top) + rows;
   if (first < 0) first = 0;
   if (last > n - 1) last = n - 1;
-  list_pass(d, l, (SDL_Rect){ 0, Y, DOT_W, rows * P - (peeks ? 0 : 12) }, n, first, last, cursor, x, w, row, ud);
-  if (peeks) {   // the next row's top, fading out
-    int a0 = d->alpha;
-    for (int sy = 0; sy < DOT_PEEK; sy += PEEK_STRIP) {
-      d->alpha = (int)(a0 * (1 - (sy + PEEK_STRIP / 2.0f) / DOT_PEEK));
-      list_pass(d, l, (SDL_Rect){ 0, Y + rows * P + sy, DOT_W, PEEK_STRIP }, n, first, last, cursor, x, w, row, ud);
-    }
-    d->alpha = a0;
-  }
+  ListCtx k = { l, n, first, last, cursor, x, w, row, ud };
+  list_pass(d, l, (SDL_Rect){ 0, Y, DOT_W, rows * P - (below ? 0 : 12) }, n, first, last, cursor, x, w, row, ud);
+  if (below) fade_zone(d, Y + rows * P, Y + rows * P + DOT_PEEK, 1, 0, list_pass_fn, &k);   // the next row's top
+  if (above) fade_zone(d, Y - 12 - DOT_PEEK, Y, 0, 1 + 12.0f / DOT_PEEK, list_pass_fn, &k);   // the row before's bottom
   SDL_RenderSetClipRect(d->r, NULL);
 }
 
@@ -819,6 +868,11 @@ static void grid_pass(Dot *d, DotGrid *g, SDL_Rect clip, int n, int cols, int nr
       cell(ud, i, x + c * PX, y + (int)lroundf((r - g->top) * PY), settled && i == cursor);
     }
 }
+typedef struct { DotGrid *g; int n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled; DotCellFn cell; void *ud; } GridCtx;
+static void grid_pass_fn(Dot *d, SDL_Rect clip, void *c) {
+  GridCtx *k = c;
+  grid_pass(d, k->g, clip, k->n, k->cols, k->nrows, k->first, k->last, k->cursor, k->x, k->y, k->cw, k->ch, k->gap, k->settled, k->cell, k->ud);
+}
 void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, int cursor, int x, int y, int cw, int ch,
               int gap, int peek, DotCellFn cell, void *ud) {
   if (cols < 1 || n < 1) return;
@@ -832,19 +886,15 @@ void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, i
     g->top = ease_to(g->top, trow, k); g->col = ease_to(g->col, ccol, k); g->row = ease_to(g->row, crow, k);
   }
   g->key = key; g->at = now;
-  int nrows = (n + cols - 1) / cols, peeks = peek && nrows > (int)trow + rows;
+  int nrows = (n + cols - 1) / cols;
+  int below = (peek & DOT_PEEK_BELOW) && nrows > (int)trow + rows, above = (peek & DOT_PEEK_ABOVE) && (trow > 0 || g->top > 0);
   int settled = g->col == ccol && g->row == crow;
-  int first = (int)floorf(g->top), last = (int)ceilf(g->top) + rows;
-  int bottom = y + rows * PY - gap + (peeks ? gap : 8);   // 8 above and below: the ring round a cover
+  int first = (int)floorf(g->top) - (above ? 1 : 0), last = (int)ceilf(g->top) + rows;
+  int bottom = y + rows * PY - gap + (below ? gap : 8);   // 8 above and below: the ring round a cover
+  GridCtx k = { g, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud };
   grid_pass(d, g, (SDL_Rect){ 0, y - 8, DOT_W, bottom - (y - 8) }, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud);
-  if (peeks) {   // the next row's top, fading out
-    int a0 = d->alpha;
-    for (int sy = 0; sy < DOT_PEEK; sy += PEEK_STRIP) {
-      d->alpha = (int)(a0 * (1 - (sy + PEEK_STRIP / 2.0f) / DOT_PEEK));
-      grid_pass(d, g, (SDL_Rect){ 0, bottom + sy, DOT_W, PEEK_STRIP }, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud);
-    }
-    d->alpha = a0;
-  }
+  if (below) fade_zone(d, bottom, bottom + DOT_PEEK, 1, 0, grid_pass_fn, &k);
+  if (above) fade_zone(d, y - gap - DOT_PEEK, y - 8, 0, 1 + (gap - 8.0f) / DOT_PEEK, grid_pass_fn, &k);
   SDL_RenderSetClipRect(d->r, NULL);
 }
 

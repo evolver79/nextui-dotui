@@ -68,6 +68,12 @@ int dot_time(Dot *d, int style, const char *s, int x, int y, Uint32 rgb, int ali
 
 // --- components -------------------------------------------------------------------------------------------------
 void dot_header(Dot *d, const char *crumb, const char *count);   // crumb left, count right, y 30
+// Text too long for maxw, scrolling (a focused title): holds DOT_SCROLL_HOLD ms, moves left at DOT_SCROLL_PX px/s
+// until it has come round, holds again. Fits: drawn as dot_text. Still (screenshots): cut with an ellipsis.
+// dot_row scrolls the focused row's name by itself.
+#define DOT_SCROLL_HOLD 1200
+#define DOT_SCROLL_PX 60
+int dot_text_scroll(Dot *d, int st, const char *s, int x, int y, Uint32 rgb, int maxw);
 void dot_title(Dot *d, const char *s);                           // Display M screen title at 40,28 (options)
 // List row (h 96). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
@@ -75,7 +81,11 @@ void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char
 // More below: a list that goes on past the screen draws the next row too, at its usual place. Only its top DOT_PEEK px
 // show, fading out downwards (dot_list and dot_grid do that), so it's clear there is more to scroll to. dot_peek and
 // dot_peek_end only clip to those 40 px (no fade): for a list drawn by hand.
-#define DOT_PEEK 40
+#define DOT_PEEK 56
+// dot_list / dot_grid peek: below (the next row) and, scrolled down, above too (the row before, under the header:
+// draw the header after the list)
+#define DOT_PEEK_BELOW 1
+#define DOT_PEEK_ABOVE 2
 void dot_peek(Dot *d, int y);   // y: the peeking row's top
 void dot_peek_end(Dot *d);
 int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // off 1 disabled, 2 on a card; returns width
