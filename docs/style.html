@@ -507,7 +507,7 @@ td .key.wide { margin-right: -34px; }
         <div class="lrow"><span class="ic"><svg class="ico"><use href="#i-note"/></svg></span><span class="two"><span class="nm">Space Debris</span><small>Captain · MOD · 4 ch</small></span><span class="mt">5:05</span></div>
       </div><span class="cap">Two-line row · same 96 px height</span></div>
     </div></div>
-    <p class="spec">Rows stack at a 108 pitch (96 + 12). Unfocused: glass with a 1 px light rim, icon well white 10%. Name in Body 32, second line in Geist 500 26 (label), value in Geist Mono 28 at the right. More below: when a list goes on past the screen, the next row peeks out under the last one, its top 40 px showing, cut off (<code>dot_peek</code>), so it's clear there is more to scroll to.</p>
+    <p class="spec">Rows stack at a 108 pitch (96 + 12). Unfocused: glass with a 1 px light rim, icon well white 10%. Name in Body 32, second line in Geist 500 26 (label), value in Geist Mono 28 at the right. More below: when a list goes on past the screen, the next row peeks out under the last one, its top 40 px showing and fading out downwards, so it's clear there is more to scroll to.</p>
   </div>
 
   <div class="sub"><h3>Option rows · 64 px at a 72 pitch, inside a card under a card heading</h3>
@@ -706,8 +706,8 @@ td .key.wide { margin-right: -34px; }
     <thead><tr><th>What</th><th>How</th><th>In Dot</th></tr></thead>
     <tbody>
       <tr><td>A list scrolling</td><td>The rows slide to their new place; the paper highlight slides to the focused row and shows the rows it passes over in their focused look. A long jump (more than a screen) doesn't slide.</td><td><code>dot_list</code>, ease time constant 55 ms</td></tr>
-      <tr><td>More below</td><td>A list that goes on past the screen shows the next row's top, 40 px of it, cut off under the last row.</td><td><code>dot_peek</code> (in <code>dot_list</code>: <code>peek</code>)</td></tr>
-      <tr><td>A grid of covers moving</td><td>Like a list: the rows slide when the grid scrolls and the focus ring slides from cover to cover (the cover it lands on gets its ring when it's there). The next row's top, 40 px, peeks out under the last when there's more, so the covers are sized to leave room for it. A jump of more than a screen doesn't slide.</td><td><code>dot_grid</code> (with <code>dot_poster</code>), the list's 55 ms</td></tr>
+      <tr><td>More below</td><td>A list that goes on past the screen shows the next row's top, 40 px of it, under the last row, fading out downwards to nothing (drawn in 4 px strips, each fainter).</td><td><code>dot_list</code> / <code>dot_grid</code>: <code>peek</code></td></tr>
+      <tr><td>A grid of covers moving</td><td>Like a list: the rows slide when the grid scrolls and the focus ring slides from cover to cover (the cover it lands on gets its ring when it's there). The next row's top, 40 px, peeks out under the last when there's more, fading out as a list's does, so the covers are sized to leave room for it. A jump of more than a screen doesn't slide.</td><td><code>dot_grid</code> (with <code>dot_poster</code>), the list's 55 ms</td></tr>
       <tr><td>A card coming and going (loading)</td><td>Fades in rising 50 px into place (320 ms); goes fading out and rising 50 px more (250 ms). The app holds the screen until it has gone.</td><td><code>dot_rise</code></td></tr>
       <tr><td>The band over video (watch info)</td><td>Full width, square, along the bottom edge. Slides up (250 ms), stays, slides down. Pills at the top fade with it.</td><td><code>dot_band</code>, <code>dot_slide</code></td></tr>
       <tr><td>New content while showing (zapping)</td><td>What's up stays up; the old content fades out, then the new in (300 ms in all). Size changes ease.</td><td><code>dot_swap</code></td></tr>

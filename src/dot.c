@@ -765,6 +765,24 @@ const void *dot_swap(Dot *d, DotSwap *s, const void *now_on, int showing, float 
 }
 
 static float ease_to(float v, float to, float k) { float dv = to - v; return fabsf(dv) < .002f ? to : v + dv * k; }
+// The peek fades out downwards: drawn again in strips this high, each more transparent than the one above it.
+#define PEEK_STRIP 4
+static void list_pass(Dot *d, DotList *l, SDL_Rect clip, int n, int first, int last, int cursor, int x, int w, DotRowFn row, void *ud) {
+  const int P = DOT_ROW_H + 12, Y = DOT_CONTENT_TOP;
+  SDL_RenderSetClipRect(d->r, &clip);
+  for (int i = first; i <= last; i++) row(ud, i, (int)lroundf(Y + (i - l->top) * P), 0);
+  // the paper at its own place, with the rows under it drawn focused, clipped to it
+  int hy = (int)lroundf(Y + (l->cur - l->top) * P);
+  SDL_Rect h = { 0, hy, DOT_W, DOT_ROW_H }, c;
+  if (cursor >= 0 && cursor < n && SDL_IntersectRect(&clip, &h, &c)) {
+    SDL_RenderSetClipRect(d->r, &c);
+    dot_rect(d, x, hy, w, DOT_ROW_H, DOT_R_ROW, DOT_PAPER, 255);
+    for (int i = first; i <= last; i++) {
+      int y = (int)lroundf(Y + (i - l->top) * P);
+      if (y + DOT_ROW_H > hy && y < hy + DOT_ROW_H) row(ud, i, y, 1);
+    }
+  }
+}
 void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor, int x, int w, int peek, DotRowFn row, void *ud) {
   const int P = DOT_ROW_H + 12, Y = DOT_CONTENT_TOP;
   Uint32 now = SDL_GetTicks();
@@ -774,31 +792,37 @@ void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor,
     l->top = ease_to(l->top, top, k); l->cur = ease_to(l->cur, cursor, k);
   }
   l->key = key; l->at = now;
-  int bottom = Y + rows * P + (peek && n > rows ? DOT_PEEK : -12);
-  SDL_Rect band = { 0, Y, DOT_W, bottom - Y };
+  int peeks = peek && n > rows;
   int first = (int)floorf(l->top), last = (int)ceilf(l->top) + rows;
   if (first < 0) first = 0;
   if (last > n - 1) last = n - 1;
-  SDL_RenderSetClipRect(d->r, &band);
-  for (int i = first; i <= last; i++) row(ud, i, (int)lroundf(Y + (i - l->top) * P), 0);
-  // the paper at its own place, with the rows under it drawn focused, clipped to it
-  int hy = (int)lroundf(Y + (l->cur - l->top) * P);
-  SDL_Rect h = { 0, hy, DOT_W, DOT_ROW_H }, c;
-  if (cursor >= 0 && cursor < n && SDL_IntersectRect(&band, &h, &c)) {
-    SDL_RenderSetClipRect(d->r, &c);
-    dot_rect(d, x, hy, w, DOT_ROW_H, DOT_R_ROW, DOT_PAPER, 255);
-    for (int i = first; i <= last; i++) {
-      int y = (int)lroundf(Y + (i - l->top) * P);
-      if (y + DOT_ROW_H > hy && y < hy + DOT_ROW_H) row(ud, i, y, 1);
+  list_pass(d, l, (SDL_Rect){ 0, Y, DOT_W, rows * P - (peeks ? 0 : 12) }, n, first, last, cursor, x, w, row, ud);
+  if (peeks) {   // the next row's top, fading out
+    int a0 = d->alpha;
+    for (int sy = 0; sy < DOT_PEEK; sy += PEEK_STRIP) {
+      d->alpha = (int)(a0 * (1 - (sy + PEEK_STRIP / 2.0f) / DOT_PEEK));
+      list_pass(d, l, (SDL_Rect){ 0, Y + rows * P + sy, DOT_W, PEEK_STRIP }, n, first, last, cursor, x, w, row, ud);
     }
+    d->alpha = a0;
   }
   SDL_RenderSetClipRect(d->r, NULL);
 }
 
+static void grid_pass(Dot *d, DotGrid *g, SDL_Rect clip, int n, int cols, int nrows, int first, int last, int cursor,
+                      int x, int y, int cw, int ch, int gap, int settled, DotCellFn cell, void *ud) {
+  const int PX = cw + gap, PY = ch + gap;
+  SDL_RenderSetClipRect(d->r, &clip);
+  if (!settled) poster_ring(d, x + (int)lroundf(g->col * PX), y + (int)lroundf((g->row - g->top) * PY), cw, ch);
+  for (int r = first < 0 ? 0 : first; r <= last && r < nrows; r++)
+    for (int c = 0; c < cols && r * cols + c < n; c++) {
+      int i = r * cols + c;
+      cell(ud, i, x + c * PX, y + (int)lroundf((r - g->top) * PY), settled && i == cursor);
+    }
+}
 void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, int cursor, int x, int y, int cw, int ch,
               int gap, int peek, DotCellFn cell, void *ud) {
   if (cols < 1 || n < 1) return;
-  const int PX = cw + gap, PY = ch + gap;
+  const int PY = ch + gap;
   float trow = (float)(top / cols), ccol = (float)(cursor % cols), crow = (float)(cursor / cols);
   Uint32 now = SDL_GetTicks();
   if (g->key != key || d->still || !g->at || now - g->at > 200 || fabsf(g->row - crow) > rows + 1 || fabsf(g->top - trow) > rows + 1) {
@@ -808,18 +832,19 @@ void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, i
     g->top = ease_to(g->top, trow, k); g->col = ease_to(g->col, ccol, k); g->row = ease_to(g->row, crow, k);
   }
   g->key = key; g->at = now;
-  int nrows = (n + cols - 1) / cols;
-  int bottom = y + rows * PY - gap + (peek && nrows > (int)trow + rows ? gap + DOT_PEEK : 8);
-  SDL_Rect band = { 0, y - 8, DOT_W, bottom - (y - 8) };   // 8 above: the ring round the top row
-  SDL_RenderSetClipRect(d->r, &band);
+  int nrows = (n + cols - 1) / cols, peeks = peek && nrows > (int)trow + rows;
   int settled = g->col == ccol && g->row == crow;
-  if (!settled) poster_ring(d, x + (int)lroundf(g->col * PX), y + (int)lroundf((g->row - g->top) * PY), cw, ch);
   int first = (int)floorf(g->top), last = (int)ceilf(g->top) + rows;
-  for (int r = first < 0 ? 0 : first; r <= last && r < nrows; r++)
-    for (int c = 0; c < cols && r * cols + c < n; c++) {
-      int i = r * cols + c;
-      cell(ud, i, x + c * PX, y + (int)lroundf((r - g->top) * PY), settled && i == cursor);
+  int bottom = y + rows * PY - gap + (peeks ? gap : 8);   // 8 above and below: the ring round a cover
+  grid_pass(d, g, (SDL_Rect){ 0, y - 8, DOT_W, bottom - (y - 8) }, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud);
+  if (peeks) {   // the next row's top, fading out
+    int a0 = d->alpha;
+    for (int sy = 0; sy < DOT_PEEK; sy += PEEK_STRIP) {
+      d->alpha = (int)(a0 * (1 - (sy + PEEK_STRIP / 2.0f) / DOT_PEEK));
+      grid_pass(d, g, (SDL_Rect){ 0, bottom + sy, DOT_W, PEEK_STRIP }, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud);
     }
+    d->alpha = a0;
+  }
   SDL_RenderSetClipRect(d->r, NULL);
 }
 

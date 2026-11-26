@@ -72,8 +72,9 @@ void dot_title(Dot *d, const char *s);                           // Display M sc
 // List row (h 96). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot);
-// More below: a list that goes on past the screen draws the next row too, at its usual place, between dot_peek and
-// dot_peek_end. Only its top DOT_PEEK px show, cut off, so it's clear there is more to scroll to.
+// More below: a list that goes on past the screen draws the next row too, at its usual place. Only its top DOT_PEEK px
+// show, fading out downwards (dot_list and dot_grid do that), so it's clear there is more to scroll to. dot_peek and
+// dot_peek_end only clip to those 40 px (no fade): for a list drawn by hand.
 #define DOT_PEEK 40
 void dot_peek(Dot *d, int y);   // y: the peeking row's top
 void dot_peek_end(Dot *d);
@@ -146,7 +147,7 @@ float dot_slide(Dot *d, DotSlide *s, int up);
 typedef struct { const void *from, *to; Uint32 at; } DotSwap;
 const void *dot_swap(Dot *d, DotSwap *s, const void *now, int showing, float *alpha);
 // A list that moves: rows at the 108 pitch from the content's top, `rows` of them in view and, with peek, the next
-// row's top under them (dot_peek). The rows slide to `top`, the paper highlight to `cursor`; row(ud, i, y, sel)
+// row's top under them, fading out downwards. The rows slide to `top`, the paper highlight to `cursor`; row(ud, i, y, sel)
 // draws row i at y, plain or (sel) focused, clipped. key: which list (another key, or a long jump: no slide).
 typedef struct { int key; float top, cur; Uint32 at; } DotList;
 typedef void (*DotRowFn)(void *ud, int i, int y, int sel);
