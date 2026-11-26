@@ -133,6 +133,7 @@ void dot_stats(Dot *d, char lines[][96], int n);
 #define DOT_NOTICE_MS 1900   // a notice: 200 in, then up, 300 out
 void dot_set_still(Dot *d, int on);
 void dot_set_alpha(Dot *d, float a);        // what's drawn next at this opacity (0-1; set 1 again after)
+float dot_alpha(Dot *d);                    // the opacity set now (for an app's own textures: SDL_SetTextureAlphaMod)
 float dot_ease_out(float t);                // cubic ease-out, t clamped to 0-1
 // A card's way in and out: in and out (0-1, how far each has gone, linear). Sets the opacity; returns the card's
 // y offset (DOT_RISE below its place at the start, DOT_RISE above at the end).

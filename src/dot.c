@@ -727,6 +727,7 @@ void dot_dock(Dot *d, const DotHint *h, int n) {
 
 // --- motion -------------------------------------------------------------------------------------------------------
 void dot_set_still(Dot *d, int on) { d->still = on; }
+float dot_alpha(Dot *d) { return d->alpha / 255.0f; }
 void dot_set_alpha(Dot *d, float a) { d->alpha = a <= 0 ? 0 : a >= 1 ? 255 : (int)(a * 255); }
 float dot_ease_out(float t) { t = clampf(t, 0, 1); return 1 - (1 - t) * (1 - t) * (1 - t); }
 
