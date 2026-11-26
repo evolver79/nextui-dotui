@@ -863,3 +863,77 @@ void dot_stats(Dot *d, char lines[][96], int n) {
     if (bar) dot_text(d, DOT_VALUE, bar, vx, y, DOT_TEXT, DOT_LEFT, right - vx);
   }
 }
+
+// --- switch, picker, subtitles ----------------------------------------------------------------------------------
+void dot_switch(Dot *d, DotSwitch *s, int x, int y, int w, const char *const *labels, int n, int on, int focused) {
+  if (n < 1) return;
+  Uint32 now = SDL_GetTicks();
+  if (d->still || !s->at || now - s->at > 200) s->pos = on;
+  else { float k = 1 - expf(-(float)(now - s->at) / DOT_LIST_MS); s->pos = ease_to(s->pos, on, k); }
+  s->at = now;
+  int h = DOT_CHIP_H, seg = w / n;
+  dot_rect(d, x, y, w, h, h / 2, 0xffffff, 26 * d->alpha / 255);   // the track: white 10% on the card
+  if (focused) blit(d, tex_rrect(d, w, h, h / 2, 2), x, y, 0xffffff, 90 * d->alpha / 255);
+  dot_rect(d, x + (int)lroundf(s->pos * seg) + 4, y + 4, seg - 8, h - 8, (h - 8) / 2, DOT_PAPER, 255);
+  for (int i = 0; i < n; i++) {
+    float near = 1 - clampf(fabsf(s->pos - i), 0, 1);   // under the paper: ink
+    Uint32 c = near > .5f ? DOT_INK : DOT_TEXT;
+    text_c(d, DOT_CHIP_T, labels[i], x + i * seg + seg / 2, y + h / 2, c, DOT_CENTER, seg - 24);
+  }
+}
+
+void dot_picker(Dot *d, DotPicker *p, int show, const char *const *tabs, int ntabs, int tab,
+                const char *const *items, int n, int cursor, int in_use) {
+  float v = dot_slide(d, &p->slide, show);
+  if (v <= 0) return;
+  const int ROWS = 5, w = 620, x = (DOT_W - w) / 2;
+  int rows = n < ROWS ? n : ROWS;
+  if (cursor < p->top) p->top = cursor;
+  if (cursor >= p->top + ROWS) p->top = cursor - ROWS + 1;
+  if (p->top > n - rows) p->top = n - rows > 0 ? n - rows : 0;
+  int head = ntabs > 1 ? DOT_CHIP_H + 24 : 0;
+  int h = DOT_PAD + head + (rows ? rows * DOT_OPT_PITCH - (DOT_OPT_PITCH - DOT_OPT_H) : 0) + DOT_PAD + 6;
+  int y = (DOT_H - h) / 2 + (int)lroundf(20 * (1 - v));
+  int a0 = d->alpha;
+  dot_set_alpha(d, v);
+  dot_rect(d, x, y, w, h, DOT_R_CARD, DOT_CARD, 255);
+  int cy = y + DOT_PAD;
+  if (ntabs > 1) { dot_switch(d, &p->sw, x + 30, cy, w - 60, tabs, ntabs, tab, 0); cy += head; }
+  for (int i = 0; i < rows; i++) {
+    int k = p->top + i;
+    dot_opt(d, x + 30, cy + i * DOT_OPT_PITCH, w - 60, items[k], NULL, k == cursor ? DOT_FOCUS : 0);
+    if (k == in_use) dot_adot(d, x + w - 30 - 14, cy + i * DOT_OPT_PITCH + (DOT_OPT_H - 14) / 2, d->accent);
+  }
+  if (n > ROWS) {   // more than fit: where you are, as dots down the right edge
+    for (int i = 0; i < n && i < 24; i++)
+      dot_circle(d, x + w - 12, y + h / 2 - (n - 1) * 9 + i * 18, 3, i == cursor ? DOT_TEXT : DOT_TRACK);
+  }
+  d->alpha = a0;
+}
+
+void dot_subtitle(Dot *d, const char *text, int bottom) {
+  if (!text || !text[0]) return;
+  const int st = DOT_BODY, maxw = DOT_W - 2 * 72, padx = 16, pady = 4;
+  int lh = dot_line_h(d, st) + 2 * pady;
+  // word-wrap every line into at most 4 screen lines
+  char out[6][256]; int no = 0;
+  char buf[512]; snprintf(buf, sizeof buf, "%s", text);
+  char *save = NULL;
+  for (char *line = strtok_r(buf, "\n", &save); line && no < 6; line = strtok_r(NULL, "\n", &save)) {
+    char cur[256] = "";
+    char *ws = NULL;
+    for (char *word = strtok_r(line, " ", &ws); word; word = strtok_r(NULL, " ", &ws)) {
+      char tryl[256]; snprintf(tryl, sizeof tryl, "%s%s%s", cur, cur[0] ? " " : "", word);
+      if (cur[0] && dot_text_w(d, st, tryl) > maxw - 2 * padx) { if (no < 6) snprintf(out[no++], 256, "%s", cur); snprintf(cur, sizeof cur, "%s", word); }
+      else snprintf(cur, sizeof cur, "%s", tryl);
+    }
+    if (cur[0] && no < 6) snprintf(out[no++], 256, "%s", cur);
+  }
+  int first = no > 4 ? no - 4 : 0;
+  for (int i = first; i < no; i++) {
+    int tw = dot_text_w(d, st, out[i]), bw = tw + 2 * padx;
+    int y = bottom - (no - i) * lh;
+    dot_rect(d, (DOT_W - bw) / 2, y, bw, lh, 10, 0x000000, 190);
+    dot_text(d, st, out[i], DOT_W / 2, y + pady, DOT_TEXT, DOT_CENTER, maxw);
+  }
+}

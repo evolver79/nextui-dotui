@@ -712,6 +712,8 @@ td .key.wide { margin-right: -34px; }
       <tr><td>New content while showing (zapping)</td><td>What's up stays up; the old content fades out, then the new in (300 ms in all). Size changes ease.</td><td><code>dot_swap</code></td></tr>
       <tr><td>A notice (audio track)</td><td>A card in the middle: icon in an accent well, a label over the value, a dot per choice. Rises 20 px fading in (200 ms), stays, fades out (300 ms): 1.9 s in all. Never at the bottom, where the band is.</td><td><code>dot_notice</code></td></tr>
       <tr><td>Waiting (tuning in, buffering)</td><td>The same card in the middle, the TV in the well and a ring of 12 dots round it, one running round with a fading tail (a turn a second). Fades in rising 20 px and out with what it waits for. Never at the bottom.</td><td><code>dot_busy</code></td></tr>
+      <tr><td>Choosing audio or subtitles (LEFT/RIGHT while watching)</td><td>A picker in the middle: a switch on top (Audio | Subtitles) when there's a choice of both, option rows below; the one in use has the accent dot, the focus is paper. LEFT/RIGHT flips the switch (its paper slides), UP/DOWN picks at once, B closes. Fades in rising 20 px.</td><td><code>dot_picker</code>, <code>dot_switch</code></td></tr>
+      <tr><td>Subtitles</td><td>Geist 32, white, each line on its own black box at 75% (radius 10), centred near the bottom, lifted above the band while it's up. At most four lines.</td><td><code>dot_subtitle</code></td></tr>
       <tr><td>Stats for nerds</td><td>Alone over the whole screen, the picture dimmed behind; everything else (band, messages, volume) waits until it closes.</td><td><code>dot_stats</code></td></tr>
     </tbody>
   </table></div>

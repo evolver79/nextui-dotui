@@ -105,6 +105,19 @@ int dot_notice(Dot *d, int icon, const char *label, const char *value, int at, i
 // round it (spin), a label over a value. show: drawn every frame, it fades in and out with s (DOT_SLIDE_MS).
 typedef struct DotSlide { float v; Uint32 at; } DotSlide;   // (dot_slide, under motion)
 void dot_busy(Dot *d, DotSlide *s, int show, int icon, const char *label, const char *value, int spin);
+// A switch between two (or a few) choices: a pill split into halves, the chosen one paper; the paper slides over
+// when the choice changes (s keeps where it is). focused: a light ring round it.
+typedef struct { float pos; Uint32 at; } DotSwitch;
+void dot_switch(Dot *d, DotSwitch *s, int x, int y, int w, const char *const *labels, int n, int on, int focused);
+// A picker in the middle of the screen (audio and subtitles while watching): a card with a switch on top when there
+// are tabs (ntabs > 1), and option rows below, the focused one paper, the one in use with an accent dot. Fades in
+// and out with s (show). At most 5 rows in view; the list scrolls with the focus.
+typedef struct { DotSlide slide; DotSwitch sw; int top; } DotPicker;
+void dot_picker(Dot *d, DotPicker *p, int show, const char *const *tabs, int ntabs, int tab,
+                const char *const *items, int n, int cursor, int in_use);
+// Subtitles: each line white on its own dark box, wrapped to the screen, centred, the last line's box ending at
+// bottom. Lines in text are split by \n.
+void dot_subtitle(Dot *d, const char *text, int bottom);
 // Stats over the whole screen, the picture dimmed behind: "LABEL|value" lines, the block in the middle.
 void dot_stats(Dot *d, char lines[][96], int n);
 
