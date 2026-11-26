@@ -520,9 +520,14 @@ void dot_corners(Dot *d, int x, int y, int w, int h, int r, Uint32 bg) {
   }
 }
 
+// The focus ring round a cover: paper 8 px out, a card-coloured gap 4 px wide inside it.
+static void poster_ring(Dot *d, int x, int y, int w, int h) {
+  int r = DOT_R_POSTER;
+  dot_rect(d, x - 8, y - 8, w + 16, h + 16, r + 8, DOT_PAPER, 255); dot_rect(d, x - 4, y - 4, w + 8, h + 8, r + 4, DOT_CARD, 255);
+}
 void dot_poster(Dot *d, SDL_Texture *img, int x, int y, int w, int h, int focus, float progress, int seen, int fresh) {
   int r = DOT_R_POSTER;
-  if (focus) { dot_rect(d, x - 8, y - 8, w + 16, h + 16, r + 8, DOT_PAPER, 255); dot_rect(d, x - 4, y - 4, w + 8, h + 8, r + 4, DOT_CARD, 255); }
+  if (focus) poster_ring(d, x, y, w, h);
   SDL_Rect box = { x, y, w, h };
   if (img) {
     SDL_SetTextureColorMod(img, 255, 255, 255); SDL_SetTextureAlphaMod(img, d->alpha);
@@ -786,6 +791,34 @@ void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor,
       if (y + DOT_ROW_H > hy && y < hy + DOT_ROW_H) row(ud, i, y, 1);
     }
   }
+  SDL_RenderSetClipRect(d->r, NULL);
+}
+
+void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, int cursor, int x, int y, int cw, int ch,
+              int gap, int peek, DotCellFn cell, void *ud) {
+  if (cols < 1 || n < 1) return;
+  const int PX = cw + gap, PY = ch + gap;
+  float trow = (float)(top / cols), ccol = (float)(cursor % cols), crow = (float)(cursor / cols);
+  Uint32 now = SDL_GetTicks();
+  if (g->key != key || d->still || !g->at || now - g->at > 200 || fabsf(g->row - crow) > rows + 1 || fabsf(g->top - trow) > rows + 1) {
+    g->top = trow; g->col = ccol; g->row = crow;
+  } else {
+    float k = 1 - expf(-(float)(now - g->at) / DOT_LIST_MS);
+    g->top = ease_to(g->top, trow, k); g->col = ease_to(g->col, ccol, k); g->row = ease_to(g->row, crow, k);
+  }
+  g->key = key; g->at = now;
+  int nrows = (n + cols - 1) / cols;
+  int bottom = y + rows * PY - gap + (peek && nrows > (int)trow + rows ? gap + DOT_PEEK : 8);
+  SDL_Rect band = { 0, y - 8, DOT_W, bottom - (y - 8) };   // 8 above: the ring round the top row
+  SDL_RenderSetClipRect(d->r, &band);
+  int settled = g->col == ccol && g->row == crow;
+  if (!settled) poster_ring(d, x + (int)lroundf(g->col * PX), y + (int)lroundf((g->row - g->top) * PY), cw, ch);
+  int first = (int)floorf(g->top), last = (int)ceilf(g->top) + rows;
+  for (int r = first < 0 ? 0 : first; r <= last && r < nrows; r++)
+    for (int c = 0; c < cols && r * cols + c < n; c++) {
+      int i = r * cols + c;
+      cell(ud, i, x + c * PX, y + (int)lroundf((r - g->top) * PY), settled && i == cursor);
+    }
   SDL_RenderSetClipRect(d->r, NULL);
 }
 
