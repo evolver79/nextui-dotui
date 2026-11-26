@@ -872,6 +872,13 @@ static void grid_pass(Dot *d, DotGrid *g, SDL_Rect clip, int n, int cols, int nr
       cell(ud, i, x + c * PX, cy, settled && i == cursor);
     }
   }
+  // the ring on its way: over the covers it passes (as outlines, the same look as dot_poster's own ring)
+  int ry = y + (int)lroundf((g->row - g->top) * PY);
+  if (!settled && ry + ch + 8 > clip.y && ry - 8 < clip.y + clip.h) {
+    int rx = x + (int)lroundf(g->col * PX), r = DOT_R_POSTER;
+    blit(d, tex_rrect(d, cw + 16, ch + 16, r + 8, 4), rx - 8, ry - 8, DOT_PAPER, 255);
+    blit(d, tex_rrect(d, cw + 8, ch + 8, r + 4, 4), rx - 4, ry - 4, DOT_CARD, 255);
+  }
 }
 typedef struct { DotGrid *g; int n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled; DotCellFn cell; void *ud; } GridCtx;
 static void grid_pass_fn(Dot *d, SDL_Rect clip, void *c) {
@@ -888,13 +895,17 @@ void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, i
     g->top = trow; g->col = ccol; g->row = crow;
   } else {
     float k = 1 - expf(-(float)(now - g->at) / DOT_LIST_MS);
+    // the ring glides from cover to cover as a list's paper does; when the grid scrolls it rides with its cover (its
+    // row at once: on screen it then moves just as the cover does), so it never waits in its place for the covers
     g->top = ease_to(g->top, trow, k);
+    g->col = ease_to(g->col, ccol, k);
+    g->row = (int)trow != g->ttop ? crow : ease_to(g->row, crow, k);
   }
-  g->col = ccol; g->row = crow;   // the ring goes with its cover (sliding on its own, it trailed behind the covers)
+  g->ttop = (int)trow;
   g->key = key; g->at = now;
   int nrows = (n + cols - 1) / cols;
   int below = (peek & DOT_PEEK_BELOW) && nrows > (int)trow + rows, above = (peek & DOT_PEEK_ABOVE) && (trow > 0 || g->top > 0);
-  int settled = g->col == ccol && g->row == crow;
+  int settled = fabsf(g->col - ccol) < .002f && fabsf(g->row - crow) < .002f;
   int first = (int)floorf(g->top) - (above ? 1 : 0), last = (int)ceilf(g->top) + rows;
   int bottom = y + rows * PY - gap + (below ? gap : 8);   // 8 above and below: the ring round a cover
   GridCtx k = { g, n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled, cell, ud };

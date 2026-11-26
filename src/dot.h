@@ -163,11 +163,11 @@ typedef struct { int key; float top, cur; Uint32 at; } DotList;
 typedef void (*DotRowFn)(void *ud, int i, int y, int sel);
 void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor, int x, int w, int peek, DotRowFn row, void *ud);
 // A grid of covers that moves (dot_poster's): `cols` across, `rows` in view from (x, y), each cw x ch with gap between.
-// The rows slide to `top` (an item index, the first of a row), the focus ring goes with the cover at `cursor` and, with peek, the
+// The rows slide to `top` (an item index, the first of a row), the focus ring glides to `cursor` (riding with its cover when the grid scrolls) and, with peek, the
 // next row's top (DOT_PEEK) shows under the last. cell(ud, i, x, y, focus) draws cover i; focus is 1 only for the
 // focused one once the ring has got there (dot_poster draws its own ring then). key: which grid (another key, or a
 // jump of more than a screen: no slide).
-typedef struct { int key; float top, col, row; Uint32 at; } DotGrid;
+typedef struct { int key; float top, col, row; Uint32 at; int ttop; } DotGrid;
 typedef void (*DotCellFn)(void *ud, int i, int x, int y, int focus);
 void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, int cursor, int x, int y, int cw, int ch,
               int gap, int peek, DotCellFn cell, void *ud);
