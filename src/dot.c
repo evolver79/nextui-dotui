@@ -36,7 +36,7 @@ struct Dot {
   Uint32 frame, accent;
   Uint32 (*backdrop)(float x, float y);   // set: what is behind instead of the ground (for corners)
   Uint32 g[3];   // the ground's stops (the theme's)
-  int night, ground, alpha;
+  int night, ground, alpha, still;
   // Doto colon geometry per display style: dot diameter, centre heights above the baseline, advance
   float colon_d[3], colon_lo[3], colon_hi[3];
   int colon_adv[3];
@@ -555,6 +555,10 @@ void dot_header(Dot *d, const char *crumb, const char *count) {
 
 void dot_title(Dot *d, const char *s) { dot_text(d, DOT_DISPLAY_M, s, DOT_MARGIN, 28, DOT_TEXT, DOT_LEFT, 700); }
 
+
+void dot_peek(Dot *d, int y) { SDL_Rect c = { 0, y, DOT_W, DOT_PEEK }; SDL_RenderSetClipRect(d->r, &c); }
+void dot_peek_end(Dot *d) { SDL_RenderSetClipRect(d->r, NULL); }
+
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot) {
   int sel = state & DOT_FOCUS, off = state & DOT_OFF;
@@ -713,5 +717,149 @@ void dot_dock(Dot *d, const DotHint *h, int n) {
   for (int i = 0; i < n; i++) {
     x += dot_key(d, x, cy - DOT_KEY / 2, h[i].key, i == 0, 3) + 14;
     x += text_c(d, DOT_UI, h[i].text, x, cy, DOT_TEXT, DOT_LEFT, 0) + gap;
+  }
+}
+
+// --- motion -------------------------------------------------------------------------------------------------------
+void dot_set_still(Dot *d, int on) { d->still = on; }
+void dot_set_alpha(Dot *d, float a) { d->alpha = a <= 0 ? 0 : a >= 1 ? 255 : (int)(a * 255); }
+float dot_ease_out(float t) { t = clampf(t, 0, 1); return 1 - (1 - t) * (1 - t) * (1 - t); }
+
+int dot_rise(Dot *d, float in, float out) {
+  if (d->still) { in = 1; out = 0; }
+  float a = dot_ease_out(in), b = dot_ease_out(out);
+  dot_set_alpha(d, a * (1 - b));
+  return (int)lroundf(DOT_RISE * (1 - a) - DOT_RISE * b);
+}
+
+float dot_slide(Dot *d, DotSlide *s, int up) {
+  Uint32 now = SDL_GetTicks();
+  float dt = (float)(now - s->at);
+  if (!s->at || now - s->at > 200) { s->v = 0; dt = 16; }
+  s->at = now;
+  float step = dt / DOT_SLIDE_MS;
+  s->v = d->still ? (up ? 1 : 0) : up ? clampf(s->v + step, 0, 1) : clampf(s->v - step, 0, 1);
+  return dot_ease_out(s->v);
+}
+
+const void *dot_swap(Dot *d, DotSwap *s, const void *now_on, int showing, float *alpha) {
+  Uint32 now = SDL_GetTicks();
+  *alpha = 1;
+  if (!showing || !s->to || d->still) { s->from = s->to = now_on; s->at = 0; return now_on; }
+  float t = s->at ? (now - s->at) / (float)DOT_SWAP_MS : 1;
+  if (now_on != s->to) {
+    if (t >= 1) { s->from = s->to; s->at = now; }                                                // a change starts
+    else if (t >= .5f) { s->from = s->to; s->at = now - (Uint32)((1 - t) * DOT_SWAP_MS); }       // again, mid-way
+    s->to = now_on;
+    t = (now - s->at) / (float)DOT_SWAP_MS;
+  }
+  if (t >= 1) { s->at = 0; return s->to; }
+  *alpha = t < .5f ? 1 - 2 * t : 2 * t - 1;
+  return t < .5f ? s->from : s->to;
+}
+
+static float ease_to(float v, float to, float k) { float dv = to - v; return fabsf(dv) < .002f ? to : v + dv * k; }
+void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor, int x, int w, int peek, DotRowFn row, void *ud) {
+  const int P = DOT_ROW_H + 12, Y = DOT_CONTENT_TOP;
+  Uint32 now = SDL_GetTicks();
+  if (l->key != key || d->still || !l->at || now - l->at > 200 || fabsf(l->cur - cursor) > rows + 1) { l->top = top; l->cur = cursor; }
+  else {
+    float k = 1 - expf(-(float)(now - l->at) / DOT_LIST_MS);
+    l->top = ease_to(l->top, top, k); l->cur = ease_to(l->cur, cursor, k);
+  }
+  l->key = key; l->at = now;
+  int bottom = Y + rows * P + (peek && n > rows ? DOT_PEEK : -12);
+  SDL_Rect band = { 0, Y, DOT_W, bottom - Y };
+  int first = (int)floorf(l->top), last = (int)ceilf(l->top) + rows;
+  if (first < 0) first = 0;
+  if (last > n - 1) last = n - 1;
+  SDL_RenderSetClipRect(d->r, &band);
+  for (int i = first; i <= last; i++) row(ud, i, (int)lroundf(Y + (i - l->top) * P), 0);
+  // the paper at its own place, with the rows under it drawn focused, clipped to it
+  int hy = (int)lroundf(Y + (l->cur - l->top) * P);
+  SDL_Rect h = { 0, hy, DOT_W, DOT_ROW_H }, c;
+  if (cursor >= 0 && cursor < n && SDL_IntersectRect(&band, &h, &c)) {
+    SDL_RenderSetClipRect(d->r, &c);
+    dot_rect(d, x, hy, w, DOT_ROW_H, DOT_R_ROW, DOT_PAPER, 255);
+    for (int i = first; i <= last; i++) {
+      int y = (int)lroundf(Y + (i - l->top) * P);
+      if (y + DOT_ROW_H > hy && y < hy + DOT_ROW_H) row(ud, i, y, 1);
+    }
+  }
+  SDL_RenderSetClipRect(d->r, NULL);
+}
+
+// --- over video -----------------------------------------------------------------------------------------------------
+void dot_band(Dot *d, int y, int h) {
+  dot_rect(d, 0, y, DOT_W, h, 0, DOT_CARD, 240);
+  dot_rect(d, 0, y, DOT_W, 1, 0, 0xffffff, 30);
+}
+
+static void centre_card(Dot *d, int icon, const char *label, const char *value, int extra, int lift, int *ox, int *oy, int *wx, int *wy);
+int dot_notice(Dot *d, int icon, const char *label, const char *value, int at, int n, Uint32 since) {
+  Uint32 age = SDL_GetTicks() - since;
+  if (!d->still && age >= DOT_NOTICE_MS) return 0;
+  float in = d->still ? 1 : dot_ease_out(age / 200.0f);
+  float out = d->still || age < DOT_NOTICE_MS - 300 ? 0 : clampf((age - (DOT_NOTICE_MS - 300)) / 300.0f, 0, 1);
+  int a0 = d->alpha, tx, ty, wx, wy;
+  dot_set_alpha(d, in * (1 - out));
+  centre_card(d, icon, label, value, n > 1 ? 14 + 2 * DOT_DOT_R : 0, (int)lroundf(20 * (1 - in)), &tx, &ty, &wx, &wy);
+  for (int i = 0; n > 1 && i < n && i < 12; i++)
+    dot_circle(d, tx + DOT_DOT_R + i * DOT_DOT_PITCH, ty + 14 + DOT_DOT_R, DOT_DOT_R, i == at - 1 ? DOT_TEXT : DOT_TRACK);
+  d->alpha = a0;
+  return 1;
+}
+
+// The card a notice or busy uses: icon well (accent, r 36) with the label over the value; returns its height.
+// *ox, *oy: under the value (for dots); *wx, *wy: the well's centre (for the busy ring). The well (r 36) sits in a
+// 100 px square, so the ring (r 50) has room; the text 28 px after it.
+#define WELL_BOX 100
+static void centre_card(Dot *d, int icon, const char *label, const char *value, int extra, int lift, int *ox, int *oy, int *wx, int *wy) {
+  int vw = dot_text_w(d, DOT_TITLE, value), lw = dot_text_w(d, DOT_LABEL_T, label), tw = vw > lw ? vw : lw;
+  int w = 30 + WELL_BOX + 28 + (tw > 240 ? tw : 240) + 40;
+  if (w > DOT_CONTENT_W) w = DOT_CONTENT_W;
+  int lab = dot_line_h(d, DOT_LABEL_T), tit = dot_line_h(d, DOT_TITLE);
+  int h = 30 + lab + 8 + tit + extra + 30;
+  if (h < 30 + WELL_BOX + 30) h = 30 + WELL_BOX + 30;
+  int x = (DOT_W - w) / 2, y = (DOT_H - h) / 2 + lift, cx = x + 30 + WELL_BOX / 2, cy = y + h / 2;
+  dot_rect(d, x, y, w, h, DOT_R_CARD, DOT_CARD, 255);
+  dot_circle(d, cx, cy, 36, d->accent);
+  dot_icon(d, icon, cx, cy, 34, DOT_INK);
+  int tx = x + 30 + WELL_BOX + 28, ty = y + (h - (lab + 8 + tit + extra)) / 2;
+  dot_text(d, DOT_LABEL_T, label, tx, ty, DOT_LABEL, DOT_LEFT, 0);
+  dot_text(d, DOT_TITLE, value, tx, ty + lab + 8, DOT_TEXT, DOT_LEFT, x + w - 40 - tx);
+  *ox = tx; *oy = ty + lab + 8 + tit; *wx = cx; *wy = cy;
+}
+
+void dot_busy(Dot *d, DotSlide *s, int show, int icon, const char *label, const char *value, int spin) {
+  float v = dot_slide(d, s, show);
+  if (v <= 0) return;
+  int a0 = d->alpha, tx, ty, cx, cy;
+  dot_set_alpha(d, v);
+  centre_card(d, icon, label, value, 0, (int)lroundf(20 * (1 - v)), &tx, &ty, &cx, &cy);
+  // the ring: 12 dots round the well, one lit running round with a fading tail (a turn a second)
+  float head = d->still ? 3 : (SDL_GetTicks() % 1000) / 1000.0f * 12;
+  for (int i = 0; i < 12; i++) {
+    float ang = i / 12.0f * 6.2831853f - 1.5707963f;
+    int px = cx + (int)lroundf(cosf(ang) * 47), py = cy + (int)lroundf(sinf(ang) * 47);
+    float behind = fmodf(head - i + 12, 12);   // 0 = the head
+    int lit = spin ? (behind < 4 ? (int)(255 * (1 - behind / 4)) : 0) : 0;
+    dot_rect(d, px - 3, py - 3, 6, 6, 3, DOT_TRACK, 255);
+    if (lit) dot_rect(d, px - 3, py - 3, 6, 6, 3, DOT_TEXT, lit);
+  }
+  d->alpha = a0;
+}
+
+void dot_stats(Dot *d, char lines[][96], int n) {
+  // 28 px type on a 40 px pitch; labels (7 letters at most) in a 160 px column; at the content's margins + 30
+  int lh = 40, th = dot_line_h(d, DOT_VALUE), bh = (n - 1) * lh + th, y0 = (DOT_H - bh) / 2;
+  int lx = DOT_MARGIN + 30, vx = lx + 160, right = DOT_W - DOT_MARGIN - 30;
+  dot_rect(d, 0, 0, DOT_W, DOT_H, 0, DOT_CARD, 225);
+  for (int i = 0; i < n; i++) {
+    char l[96]; snprintf(l, sizeof l, "%s", lines[i]);
+    char *bar = strchr(l, '|'); if (bar) *bar++ = 0;
+    int y = y0 + i * lh;
+    dot_text(d, DOT_LABEL_T, l, lx, y, DOT_LABEL, DOT_LEFT, vx - lx - 12);
+    if (bar) dot_text(d, DOT_VALUE, bar, vx, y, DOT_TEXT, DOT_LEFT, right - vx);
   }
 }

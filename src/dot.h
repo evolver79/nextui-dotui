@@ -72,6 +72,11 @@ void dot_title(Dot *d, const char *s);                           // Display M sc
 // List row (h 96). sub = second line or NULL; meta = right-aligned value or NULL; adot = accent dot before meta.
 void dot_row(Dot *d, int x, int y, int w, int icon, const char *name, const char *sub, const char *meta,
              int state, int adot);
+// More below: a list that goes on past the screen draws the next row too, at its usual place, between dot_peek and
+// dot_peek_end. Only its top DOT_PEEK px show, cut off, so it's clear there is more to scroll to.
+#define DOT_PEEK 40
+void dot_peek(Dot *d, int y);   // y: the peeking row's top
+void dot_peek_end(Dot *d);
 int  dot_key(Dot *d, int x, int y, const char *key, int primary, int off);   // off 1 disabled, 2 on a card; returns width
 void dot_round(Dot *d, int cx, int cy, int icon, int big, int state);   // state: DOT_FOCUS ring, DOT_ON lit, DOT_OFF
 int  dot_pill(Dot *d, int x, int y, const char *s, int adot, int mono, int align);   // align: x is left/right edge
@@ -90,3 +95,45 @@ int  dot_panel(Dot *d, int x, int y, int w, int h, const char *label);
 int  dot_panel_h(int content_h);   // card height for that much content under a heading
 #define DOT_OPT_PITCH 72
 void dot_dock(Dot *d, const DotHint *h, int n);                  // at most four hints
+// A full-bleed band along the bottom edge (over video: the watch info), square, solid card colour, hairline on top.
+void dot_band(Dot *d, int y, int h);
+// A card in the middle of the screen for a moment (picking an audio track): icon in an accent well, a label (mono,
+// uppercase) over a value, and n dots with the at-th lit (n < 2: none). Comes in, stays, goes (DOT_NOTICE_MS in
+// all, from since). Returns 0 once it has gone.
+int dot_notice(Dot *d, int icon, const char *label, const char *value, int at, int n, Uint32 since);
+// Waiting, in the middle of the screen (tuning in, buffering): icon in an accent well with a ring of dots running
+// round it (spin), a label over a value. show: drawn every frame, it fades in and out with s (DOT_SLIDE_MS).
+typedef struct DotSlide { float v; Uint32 at; } DotSlide;   // (dot_slide, under motion)
+void dot_busy(Dot *d, DotSlide *s, int show, int icon, const char *label, const char *value, int spin);
+// Stats over the whole screen, the picture dimmed behind: "LABEL|value" lines, the block in the middle.
+void dot_stats(Dot *d, char lines[][96], int n);
+
+// --- motion -------------------------------------------------------------------------------------------------------
+// One curve and a few timings for every app (style guide, Motion). It all runs on SDL_GetTicks(); with
+// dot_set_still on (screenshots) everything is drawn where it ends up.
+#define DOT_RISE 50          // px a card rises coming in (from below its place), and again going (above it)
+#define DOT_IN_MS 320        // a card coming in
+#define DOT_OUT_MS 250       // a card going
+#define DOT_SLIDE_MS 250     // the band sliding up from the bottom edge, or down
+#define DOT_SWAP_MS 300      // new content in something that stays up: the old fades out, then the new in
+#define DOT_LIST_MS 55       // list rows and the highlight: their ease's time constant (settled in about 0.2 s)
+#define DOT_NOTICE_MS 1900   // a notice: 200 in, then up, 300 out
+void dot_set_still(Dot *d, int on);
+void dot_set_alpha(Dot *d, float a);        // what's drawn next at this opacity (0-1; set 1 again after)
+float dot_ease_out(float t);                // cubic ease-out, t clamped to 0-1
+// A card's way in and out: in and out (0-1, how far each has gone, linear). Sets the opacity; returns the card's
+// y offset (DOT_RISE below its place at the start, DOT_RISE above at the end).
+int dot_rise(Dot *d, float in, float out);
+// Something that slides in and out (the band): up says where it should be. Returns how far up it is, eased (0
+// hidden). Not drawn for a moment (another screen): it comes in from hidden.
+float dot_slide(Dot *d, DotSlide *s, int up);
+// New content while it's showing: give the content now on (a pointer standing for it) and whether it's showing.
+// Returns which to draw, the old one or the new, and sets *alpha for it.
+typedef struct { const void *from, *to; Uint32 at; } DotSwap;
+const void *dot_swap(Dot *d, DotSwap *s, const void *now, int showing, float *alpha);
+// A list that moves: rows at the 108 pitch from the content's top, `rows` of them in view and, with peek, the next
+// row's top under them (dot_peek). The rows slide to `top`, the paper highlight to `cursor`; row(ud, i, y, sel)
+// draws row i at y, plain or (sel) focused, clipped. key: which list (another key, or a long jump: no slide).
+typedef struct { int key; float top, cur; Uint32 at; } DotList;
+typedef void (*DotRowFn)(void *ud, int i, int y, int sel);
+void dot_list(Dot *d, DotList *l, int key, int n, int rows, int top, int cursor, int x, int w, int peek, DotRowFn row, void *ud);
