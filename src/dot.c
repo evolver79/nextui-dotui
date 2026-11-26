@@ -864,7 +864,6 @@ static void grid_pass(Dot *d, DotGrid *g, SDL_Rect clip, int n, int cols, int nr
                       int x, int y, int cw, int ch, int gap, int settled, DotCellFn cell, void *ud) {
   const int PX = cw + gap, PY = ch + gap;
   SDL_RenderSetClipRect(d->r, &clip);
-  int ry = y + (int)lroundf((g->row - g->top) * PY);
   for (int r = first < 0 ? 0 : first; r <= last && r < nrows; r++) {
     int cy = y + (int)lroundf((r - g->top) * PY);
     if (cy + ch + 8 <= clip.y || cy - 8 >= clip.y + clip.h) continue;   // only the rows that show in the clip
@@ -872,12 +871,6 @@ static void grid_pass(Dot *d, DotGrid *g, SDL_Rect clip, int n, int cols, int nr
       int i = r * cols + c;
       cell(ud, i, x + c * PX, cy, settled && i == cursor);
     }
-  }
-  // the ring on its way: over the covers it passes (as outlines, the same look as dot_poster's own ring)
-  if (!settled && ry + ch + 8 > clip.y && ry - 8 < clip.y + clip.h) {
-    int rx = x + (int)lroundf(g->col * PX), r = DOT_R_POSTER;
-    blit(d, tex_rrect(d, cw + 16, ch + 16, r + 8, 4), rx - 8, ry - 8, DOT_PAPER, 255);
-    blit(d, tex_rrect(d, cw + 8, ch + 8, r + 4, 4), rx - 4, ry - 4, DOT_CARD, 255);
   }
 }
 typedef struct { DotGrid *g; int n, cols, nrows, first, last, cursor, x, y, cw, ch, gap, settled; DotCellFn cell; void *ud; } GridCtx;
@@ -895,8 +888,9 @@ void dot_grid(Dot *d, DotGrid *g, int key, int n, int cols, int rows, int top, i
     g->top = trow; g->col = ccol; g->row = crow;
   } else {
     float k = 1 - expf(-(float)(now - g->at) / DOT_LIST_MS);
-    g->top = ease_to(g->top, trow, k); g->col = ease_to(g->col, ccol, k); g->row = ease_to(g->row, crow, k);
+    g->top = ease_to(g->top, trow, k);
   }
+  g->col = ccol; g->row = crow;   // the ring goes with its cover (sliding on its own, it trailed behind the covers)
   g->key = key; g->at = now;
   int nrows = (n + cols - 1) / cols;
   int below = (peek & DOT_PEEK_BELOW) && nrows > (int)trow + rows, above = (peek & DOT_PEEK_ABOVE) && (trow > 0 || g->top > 0);
